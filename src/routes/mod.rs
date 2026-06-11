@@ -40,9 +40,6 @@ pub async fn webhook_handler(
 }
 
 async fn handle_checkout_session_success(session: CheckoutSession, app_data: &AppState) {
-    const PACKAGE_NAME: &'static str = env!("CARGO_PKG_NAME");
-    const PACKAGE_VERSION: &'static str = env!("CARGO_PKG_VERSION");
-
     let currency = session
         .currency
         .as_ref()
@@ -74,15 +71,12 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
         }
     });
 
-    let user_agent = format!("{}/{}", PACKAGE_NAME, PACKAGE_VERSION);
-
     println!("Sending 'checkout-completed' event to analytics server...");
 
     let res = app_data
         .http_client
         .post(&app_data.analytics_api_url)
         .json(&body)
-        .header("User-Agent", user_agent)
         .send()
         .await;
 
@@ -92,7 +86,8 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
                 println!("Successfully sent 'checkout-completed' event to analytics server")
             } else {
                 println!(
-                    "Error in response when sending 'checkout-completed' event to analytics server: {response:#?}"
+                    "Error in response when sending 'checkout-completed' event to analytics server. Status: {}",
+                    response.status()
                 )
             }
         }
