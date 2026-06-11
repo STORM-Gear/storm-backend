@@ -34,6 +34,10 @@
             self'.devShells.rust
           ];
 
+          packages = with pkgs; [
+            stripe-cli
+          ];
+
           buildInputs = with pkgs; [
             openssl
           ];
