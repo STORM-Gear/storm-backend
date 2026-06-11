@@ -16,6 +16,9 @@ struct Args {
 }
 
 struct AppState {
+    http_client: reqwest::Client,
+    analytics_website_id: String,
+    analytics_api_url: String,
     stripe_secret: String,
 }
 
@@ -23,8 +26,21 @@ struct AppState {
 async fn main() -> std::io::Result<()> {
     let Args { port, bind_address } = Args::parse();
 
-    let stripe_secret = std::env::var("STRIPE_SECRET").expect("'STRIPE_SECRET' env var required");
-    let app_data = web::Data::new(AppState { stripe_secret });
+    let http_client = reqwest::Client::new();
+
+    fn get_env_var(name: &'static str) -> String {
+        std::env::var(name).expect(format!("'{name}' env var required").as_str())
+    }
+    let stripe_secret = get_env_var("STRIPE_SECRET");
+    let analytics_website_id = get_env_var("ANALYTICS_WEBSITE_ID");
+    let analytics_api_url = get_env_var("ANALYTICS_API_URL");
+
+    let app_data = web::Data::new(AppState {
+        http_client,
+        analytics_website_id,
+        analytics_api_url,
+        stripe_secret,
+    });
 
     println!("Starting server on http://{bind_address}:{port}");
 
