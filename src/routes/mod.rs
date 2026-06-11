@@ -40,6 +40,8 @@ pub async fn webhook_handler(
 }
 
 async fn handle_checkout_session_success(session: CheckoutSession, app_data: &AppState) {
+    const EVENT_NAME: &'static str = "checkout-completed";
+
     let currency = session
         .currency
         .as_ref()
@@ -62,7 +64,7 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
         "type": "event",
         "payload": {
             "website": app_data.analytics_website_id,
-            "name": "checkout-completed",
+            "name": EVENT_NAME,
             "data": {
                 "revenue": revenue,
                 "currency": currency,
@@ -71,7 +73,7 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
         }
     });
 
-    println!("Sending 'checkout-completed' event to analytics server...");
+    println!("Sending '{EVENT_NAME}' event to analytics server...");
 
     let res = app_data
         .http_client
@@ -83,17 +85,17 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
     match res {
         Ok(response) => {
             if response.status().is_success() {
-                println!("Successfully sent 'checkout-completed' event to analytics server")
+                println!("Successfully sent '{EVENT_NAME}' event to analytics server")
             } else {
                 println!(
-                    "Error in response when sending 'checkout-completed' event to analytics server. Status: {}",
+                    "Error in response when sending '{EVENT_NAME}' event to analytics server. Status: {}",
                     response.status()
                 )
             }
         }
 
         Err(e) => {
-            println!("Error when sending 'checkout-completed' event to analytics server: {e}")
+            println!("Error when sending '{EVENT_NAME}' event to analytics server: {e}")
         }
     }
 }
