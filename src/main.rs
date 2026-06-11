@@ -1,13 +1,7 @@
 use actix_web::*;
 use clap::Parser;
-use stripe_core::Event as StripeEvent;
 
-#[post("/stripe/webhook")]
-async fn stripe_webhook(event: web::Json<StripeEvent>) -> impl Responder {
-    println!("Event: {event:?}");
-
-    HttpResponse::Ok().body("Hello world!")
-}
+mod routes;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -21,14 +15,25 @@ struct Args {
     bind_address: String,
 }
 
+struct AppState {
+    stripe_secret: String,
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let Args { port, bind_address } = Args::parse();
 
+    let stripe_secret = std::env::var("STRIPE_SECRET").expect("'STRIPE_SECRET' env var required");
+    let app_data = web::Data::new(AppState { stripe_secret });
+
     println!("Starting server on http://{bind_address}:{port}");
 
-    HttpServer::new(|| App::new().service(stripe_webhook))
-        .bind((bind_address, port))?
-        .run()
-        .await
+    HttpServer::new(move || {
+        App::new()
+            .app_data(app_data.clone())
+            .service(routes::webhook_handler)
+    })
+    .bind((bind_address, port))?
+    .run()
+    .await
 }
