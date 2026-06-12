@@ -65,6 +65,9 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
         .map(|details| (details.name, details.email))
         .unzip();
 
+    let email = email.flatten();
+    let name = name.flatten();
+
     let body = serde_json::json!({
         "type": "event",
         "payload": {
