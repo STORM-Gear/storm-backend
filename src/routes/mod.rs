@@ -67,17 +67,19 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
 
     let email = email.flatten();
     let name = name.flatten();
+    let id = session.client_reference_id.or(email.clone());
 
     let body = serde_json::json!({
         "type": "event",
         "payload": {
             "website": app_data.analytics_website_id,
             "name": EVENT_NAME,
-            "id": email, // Uniquely identify the user
+            "id": id,
             "data": {
                 "revenue": revenue,
                 "currency": currency,
                 "customer_name": name,
+                "customer_email": email,
             }
         }
     });
