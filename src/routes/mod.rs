@@ -70,8 +70,8 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
         "payload": {
             "website": app_data.analytics_website_id,
             "name": EVENT_NAME,
+            "id": email, // Uniquely identify the user
             "data": {
-                "id": email, // Uniquely identify the user
                 "revenue": revenue,
                 "currency": currency,
                 "customer_name": name,
