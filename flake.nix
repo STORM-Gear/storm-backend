@@ -86,7 +86,7 @@
               serviceConfig = {
                 Type = "simple";
                 ExecStart = "${cfg.package}/bin/storm-backend --port ${toString cfg.port} --bind-address ${cfg.bindAddress}";
-                EnvironmentFiles = [cfg.secretsFile];
+                EnvironmentFile = cfg.secretsFile;
                 Restart = "on-failure";
                 RestartSec = 5;
                 User = cfg.user;
