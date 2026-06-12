@@ -60,15 +60,21 @@ async fn handle_checkout_session_success(session: CheckoutSession, app_data: &Ap
         }
     };
 
+    let (name, email) = session
+        .customer_details
+        .map(|details| (details.name, details.email))
+        .unzip();
+
     let body = serde_json::json!({
         "type": "event",
         "payload": {
             "website": app_data.analytics_website_id,
             "name": EVENT_NAME,
             "data": {
+                "id": email, // Uniquely identify the user
                 "revenue": revenue,
                 "currency": currency,
-                "session": session
+                "customer_name": name,
             }
         }
     });
