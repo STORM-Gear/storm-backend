@@ -1,12 +1,12 @@
 # Storm Backend
 
-A lightweight Rust backend service for payment processing and [umami](https://umami.is/) analytics integration.
+A lightweight Rust backend service for forwarding Stripe payments to [umami](https://umami.is/) analytics.
 
 ## Features
 
 - **Actix-web** server for fast HTTP handling
 - **Stripe** webhook processing
-- **Analytics** integration
+- **Umami Analytics** integration
 - Environment-based configuration
 
 ## Getting Started
