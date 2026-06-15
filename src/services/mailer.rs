@@ -5,6 +5,25 @@ use lettre::{
 
 use crate::{stripe::PaymentInfo, utils::get_env_var};
 
+const EMAIL_SUBJECT: &'static str = "Votre commande a bien été prise en compte !";
+const EMAIL_BODY: &'static str = r#"
+Bonjour,
+
+Nous vous informons que votre commande a bien été prise en compte.
+
+Le délai de livraison estimé est de 3 jours ouvrés.
+
+Nous espérons que votre STORM vous accompagnera dans de nombreux beaux vols.
+
+N'hésitez pas à nous faire un retour après réception. Vos avis sont précieux pour nous aider à améliorer le produit.
+
+Si STORM vous plaît, parler du produit autour de vous est le meilleur moyen de soutenir la marque.
+
+Merci pour votre confiance et bons vols.
+
+L'équipe STORM
+"#;
+
 pub struct Mailer {
     client: AsyncSmtpTransport<Tokio1Executor>,
 }
@@ -26,8 +45,8 @@ impl Mailer {
         let email = Message::builder()
             .from("variostorm@gmail.com".parse().unwrap())
             .to(payment_info.customer_email.parse().unwrap())
-            .subject("Commande confirmée")
-            .body(format!("Bonjour {}, merci pour votre commande ! Elle vous sera livrée très prochainement.\nCdt\n\nSTORM Gear", payment_info.customer_name))
+            .subject(EMAIL_SUBJECT)
+            .body(EMAIL_BODY.to_string())
             .unwrap();
 
         self.client.send(email).await.unwrap();
