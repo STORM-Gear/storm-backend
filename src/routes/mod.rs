@@ -1,4 +1,5 @@
 use actix_web::*;
+use tracing::error;
 
 use crate::{AppState, stripe::PaymentInfo};
 
@@ -13,7 +14,7 @@ pub async fn webhook_handler(
             payment_pipeline(payment_info, &app_data).await;
         }
         Err(e) => {
-            println!("{}", e);
+            error!("{}", e);
         }
     };
 

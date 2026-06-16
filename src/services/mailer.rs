@@ -2,11 +2,12 @@ use lettre::{
     AsyncSmtpTransport, AsyncTransport as _, Message, Tokio1Executor,
     transport::smtp::authentication::Credentials,
 };
+use tracing::info;
 
 use crate::{stripe::PaymentInfo, utils::get_env_var};
 
-const EMAIL_SUBJECT: &'static str = "Votre commande a bien été prise en compte !";
-const EMAIL_BODY: &'static str = r#"
+const EMAIL_SUBJECT: &str = "Votre commande a bien été prise en compte !";
+const EMAIL_BODY: &str = r#"
 Bonjour,
 
 Nous vous informons que votre commande a bien été prise en compte.
@@ -50,6 +51,6 @@ impl Mailer {
             .unwrap();
 
         self.client.send(email).await.unwrap();
-        println!("Email sent.");
+        info!("Confirmation email sent.");
     }
 }

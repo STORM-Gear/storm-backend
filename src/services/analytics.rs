@@ -1,3 +1,5 @@
+use tracing::{error, info};
+
 use crate::{stripe::PaymentInfo, utils::get_env_var};
 
 pub struct AnalyticsServer {
@@ -16,7 +18,7 @@ impl AnalyticsServer {
     }
 
     pub async fn send_checkout_completed(&self, payment_info: PaymentInfo) {
-        const EVENT_NAME: &'static str = "checkout-completed";
+        const EVENT_NAME: &str = "checkout-completed";
 
         let body = serde_json::json!({
             "type": "event",
@@ -38,9 +40,9 @@ impl AnalyticsServer {
         match res {
             Ok(response) => {
                 if response.status().is_success() {
-                    println!("Successfully sent '{EVENT_NAME}' event to analytics server")
+                    info!("Successfully sent '{EVENT_NAME}' event to analytics server")
                 } else {
-                    println!(
+                    error!(
                         "Error in response when sending '{EVENT_NAME}' event to analytics server. Status: {}",
                         response.status()
                     )
@@ -48,7 +50,7 @@ impl AnalyticsServer {
             }
 
             Err(e) => {
-                println!("Error when sending '{EVENT_NAME}' event to analytics server: {e}")
+                error!("Error when sending '{EVENT_NAME}' event to analytics server: {e}")
             }
         }
     }

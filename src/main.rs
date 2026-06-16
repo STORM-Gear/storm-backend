@@ -1,5 +1,8 @@
 use actix_web::*;
 use clap::Parser;
+use tracing::info;
+use tracing_actix_web::TracingLogger;
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
     services::{analytics::AnalyticsServer, mailer::Mailer},
@@ -31,6 +34,11 @@ struct AppState {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    tracing_subscriber::registry()
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| "info,actix_web=debug".into()))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     let Args { port, bind_address } = Args::parse();
 
     let stripe = StripeWebhookHandler::from_env();
@@ -43,11 +51,12 @@ async fn main() -> std::io::Result<()> {
         mailer,
     });
 
-    println!("Starting server on http://{bind_address}:{port}");
+    info!("Starting server on http://{bind_address}:{port}");
 
     HttpServer::new(move || {
         App::new()
             .app_data(app_data.clone())
+            .wrap(TracingLogger::default())
             .service(routes::webhook_handler)
     })
     .bind((bind_address, port))?
