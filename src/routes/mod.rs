@@ -22,16 +22,14 @@ pub async fn webhook_handler(
 }
 
 async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
-    app_data
-        .analytics
-        .send_checkout_completed(payment_info.clone())
-        .await;
+    let (_, mail_res) = tokio::join!(
+        app_data
+            .analytics
+            .send_checkout_completed(payment_info.clone()),
+        app_data.mailer.send_checkout_confirmation(payment_info),
+    );
 
-    if let Err(e) = app_data
-        .mailer
-        .send_checkout_confirmation(payment_info)
-        .await
-    {
+    if let Err(e) = mail_res {
         error!("Failed to send checkout confirmation email: {e}");
     };
 }
