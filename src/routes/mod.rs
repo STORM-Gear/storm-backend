@@ -30,4 +30,13 @@ async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
     if let Err(e) = mail_res {
         error!("Failed to send checkout confirmation email: {e}");
     };
+
+    let discord_res = app_data
+        .discord
+        .send_checkout_completed_message(&payment_info)
+        .await;
+
+    if let Err(e) = discord_res {
+        error!("Failed to send Discord notification: {e}");
+    };
 }

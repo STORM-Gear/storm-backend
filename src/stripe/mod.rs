@@ -123,3 +123,12 @@ impl FromStr for ShippingMethod {
         }
     }
 }
+
+impl ToString for ShippingMethod {
+    fn to_string(&self) -> String {
+        match self {
+            ShippingMethod::InPerson => "Remise en main propre".into(),
+            ShippingMethod::France => "Livraison France".into(),
+        }
+    }
+}

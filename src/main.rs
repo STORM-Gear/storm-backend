@@ -5,7 +5,7 @@ use tracing_actix_web::TracingLogger;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
-    services::{analytics::AnalyticsServer, mailer::Mailer},
+    services::{analytics::AnalyticsServer, discord::DiscordWebhook, mailer::Mailer},
     stripe::StripeWebhookHandler,
 };
 
@@ -30,6 +30,7 @@ struct AppState {
     stripe: StripeWebhookHandler,
     analytics: AnalyticsServer,
     mailer: Mailer,
+    discord: DiscordWebhook,
 }
 
 #[actix_web::main]
@@ -44,11 +45,13 @@ async fn main() -> std::io::Result<()> {
     let stripe = StripeWebhookHandler::from_env();
     let analytics = AnalyticsServer::from_env();
     let mailer = Mailer::from_env();
+    let discord = DiscordWebhook::from_env();
 
     let app_data = web::Data::new(AppState {
         stripe,
         analytics,
         mailer,
+        discord,
     });
 
     info!("Starting server on http://{bind_address}:{port}");
