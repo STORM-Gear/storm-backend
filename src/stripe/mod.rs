@@ -1,5 +1,3 @@
-use std::borrow::Borrow as _;
-
 use actix_web::{HttpRequest, web};
 use stripe_shared::CheckoutSession;
 use stripe_webhook::{EventObject, Webhook};
@@ -34,7 +32,7 @@ impl StripeWebhookHandler {
         request: HttpRequest,
         payload: web::Bytes,
     ) -> Result<PaymentInfo, HookError> {
-        let payload_str = std::str::from_utf8(payload.borrow()).unwrap();
+        let payload_str = std::str::from_utf8(&payload).unwrap();
 
         let stripe_signature = request
             .headers()
