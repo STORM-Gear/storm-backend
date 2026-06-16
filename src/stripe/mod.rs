@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use actix_web::{HttpRequest, web};
 use stripe_shared::CheckoutSession;
 use stripe_webhook::{EventObject, Webhook};
@@ -18,6 +20,13 @@ pub struct PaymentInfo {
     pub customer_name: String,
     pub customer_email: String,
     pub analytics_id: Option<String>,
+    pub shipping_method: ShippingMethod,
+}
+
+#[derive(Debug, Clone)]
+pub enum ShippingMethod {
+    InPerson,
+    France,
 }
 
 impl StripeWebhookHandler {
@@ -84,12 +93,33 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
 
         let id = session.client_reference_id;
 
+        let shipping_rate = session
+            .shipping_cost
+            .ok_or(ParseError::MissingField("shipping_cost"))?
+            .shipping_rate
+            .ok_or(ParseError::MissingField("shipping_cost.shipping_rate"))?;
+
+        let shipping_method = ShippingMethod::from_str(shipping_rate.id().as_str())?;
+
         Ok(Self {
             revenue,
             currency,
             customer_name: name,
             customer_email: email,
             analytics_id: id,
+            shipping_method,
         })
+    }
+}
+
+impl FromStr for ShippingMethod {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "shr_1Tiu9nPB7bMAkkZ4zSCGHOUr" => Ok(Self::InPerson),
+            "shr_1TeiCnPB7bMAkkZ4mveQfGbY" => Ok(Self::France),
+            _ => Err(ParseError::UnknownShippingRate(s.to_string())),
+        }
     }
 }

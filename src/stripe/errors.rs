@@ -11,6 +11,7 @@ pub enum WebhookProcessingError {
 pub enum PaymentInfoParsingError {
     MissingField(&'static str),
     UnhandledCurrency(String),
+    UnknownShippingRate(String),
 }
 
 impl std::fmt::Display for WebhookProcessingError {
@@ -36,6 +37,9 @@ impl std::fmt::Display for PaymentInfoParsingError {
             PaymentInfoParsingError::MissingField(field) => write!(f, "Missing '{field}' field"),
             PaymentInfoParsingError::UnhandledCurrency(currency) => {
                 write!(f, "Unhandled currency '{currency}'")
+            }
+            PaymentInfoParsingError::UnknownShippingRate(id) => {
+                write!(f, "Unknown shipping rate ID: {id}")
             }
         }
     }
