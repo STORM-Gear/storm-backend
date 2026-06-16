@@ -2,6 +2,7 @@ use stripe_shared::EventType;
 
 pub enum WebhookProcessingError {
     MissingSignatureHeader,
+    InvalidPayload,
     InvalidSignature,
     UnhandledEvent(EventType),
     ParseError(PaymentInfoParsingError),
@@ -16,6 +17,7 @@ impl std::fmt::Display for WebhookProcessingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             WebhookProcessingError::MissingSignatureHeader => write!(f, "Missing signature header"),
+            WebhookProcessingError::InvalidPayload => write!(f, "Invalid payload"),
             WebhookProcessingError::InvalidSignature => write!(f, "Invalid webhook signature"),
             WebhookProcessingError::UnhandledEvent(event_type) => {
                 write!(f, "Unhandled event type: {}", event_type)

@@ -41,7 +41,7 @@ impl StripeWebhookHandler {
             .get("Stripe-Signature")
             .ok_or(HookError::MissingSignatureHeader)?
             .to_str()
-            .unwrap();
+            .map_err(|_| HookError::InvalidPayload)?;
 
         if let Ok(event) = Webhook::construct_event(payload_str, stripe_signature, &self.secret) {
             match event.data.object {
