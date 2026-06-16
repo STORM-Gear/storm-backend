@@ -1,6 +1,7 @@
 use lettre::{
     AsyncSmtpTransport, AsyncTransport as _, Message, Tokio1Executor,
-    transport::smtp::authentication::Credentials,
+    address::AddressError,
+    transport::smtp::{Error as SMTPError, authentication::Credentials},
 };
 use tracing::info;
 
@@ -29,6 +30,11 @@ pub struct Mailer {
     client: AsyncSmtpTransport<Tokio1Executor>,
 }
 
+pub enum MailerError {
+    Parse(AddressError),
+    SMTP(SMTPError),
+}
+
 impl Mailer {
     pub fn from_env() -> Self {
         let credentials = Credentials::new(get_env_var("SMTP_USER"), get_env_var("SMTP_PASS"));
@@ -42,15 +48,34 @@ impl Mailer {
         Self { client }
     }
 
-    pub async fn send_checkout_confirmation(&self, payment_info: PaymentInfo) {
+    pub async fn send_checkout_confirmation(
+        &self,
+        payment_info: PaymentInfo,
+    ) -> Result<(), MailerError> {
         let email = Message::builder()
             .from("variostorm@gmail.com".parse().unwrap())
-            .to(payment_info.customer_email.parse().unwrap())
+            .to(payment_info
+                .customer_email
+                .parse()
+                .map_err(|e| MailerError::Parse(e))?)
             .subject(EMAIL_SUBJECT)
             .body(EMAIL_BODY.to_string())
             .unwrap();
 
-        self.client.send(email).await.unwrap();
+        self.client
+            .send(email)
+            .await
+            .map_err(|e| MailerError::SMTP(e))?;
         info!("Confirmation email sent.");
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for MailerError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MailerError::Parse(e) => write!(f, "Failed to parse customer email address: {e}"),
+            MailerError::SMTP(e) => write!(f, "Failed to send email over SMTP: {e}"),
+        }
     }
 }

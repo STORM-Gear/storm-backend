@@ -27,8 +27,11 @@ async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
         .send_checkout_completed(payment_info.clone())
         .await;
 
-    app_data
+    if let Err(e) = app_data
         .mailer
         .send_checkout_confirmation(payment_info)
-        .await;
+        .await
+    {
+        error!("Failed to send checkout confirmation email: {e}");
+    };
 }
