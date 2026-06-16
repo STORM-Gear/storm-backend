@@ -5,28 +5,16 @@ use lettre::{
 };
 use tracing::info;
 
-use crate::{stripe::PaymentInfo, utils::get_env_var};
+use crate::{
+    stripe::{PaymentInfo, ShippingMethod},
+    utils::get_env_var,
+};
 
-const EMAIL_SUBJECT: &str = "Votre commande a bien été prise en compte !";
-const EMAIL_BODY: &str = r#"
-Bonjour,
-
-Nous vous informons que votre commande a bien été prise en compte.
-
-Le délai de livraison estimé est de 3 jours ouvrés.
-
-Nous espérons que votre STORM vous accompagnera dans de nombreux beaux vols.
-
-N'hésitez pas à nous faire un retour après réception. Vos avis sont précieux pour nous aider à améliorer le produit.
-
-Si STORM vous plaît, parler du produit autour de vous est le meilleur moyen de soutenir la marque.
-
-Merci pour votre confiance et bons vols.
-
-L'équipe STORM
-"#;
+const EMAIL_SUBJECT: &str = "Votre STORM est en route ✈️";
+const EMAIL_SUBJECT_INPERSON: &str = "Votre STORM est prêt, à vous de jouer 🪂";
 
 pub struct Mailer {
+    from_email: String,
     client: AsyncSmtpTransport<Tokio1Executor>,
 }
 
@@ -37,7 +25,8 @@ pub enum MailerError {
 
 impl Mailer {
     pub fn from_env() -> Self {
-        let credentials = Credentials::new(get_env_var("SMTP_USER"), get_env_var("SMTP_PASS"));
+        let email = get_env_var("SMTP_USER");
+        let credentials = Credentials::new(email.clone(), get_env_var("SMTP_PASS"));
         let smtp_host = get_env_var("SMTP_HOST");
 
         let client = AsyncSmtpTransport::<Tokio1Executor>::relay(&smtp_host)
@@ -45,21 +34,26 @@ impl Mailer {
             .credentials(credentials)
             .build();
 
-        Self { client }
+        Self {
+            from_email: email,
+            client,
+        }
     }
 
-    pub async fn send_checkout_confirmation(
-        &self,
-        payment_info: PaymentInfo,
-    ) -> Result<(), MailerError> {
+    pub async fn send_checkout_confirmation(&self, info: &PaymentInfo) -> Result<(), MailerError> {
+        let (subject, body) = match info.shipping_method {
+            ShippingMethod::France => (EMAIL_SUBJECT, self.render_standard_email(info)),
+            ShippingMethod::InPerson => (EMAIL_SUBJECT_INPERSON, self.render_inperson_email(info)),
+        };
+
         let email = Message::builder()
-            .from("variostorm@gmail.com".parse().unwrap())
-            .to(payment_info
+            .from(self.from_email.parse().unwrap())
+            .to(info
                 .customer_email
                 .parse()
                 .map_err(|e| MailerError::Parse(e))?)
-            .subject(EMAIL_SUBJECT)
-            .body(EMAIL_BODY.to_string())
+            .subject(subject)
+            .body(body)
             .unwrap();
 
         self.client
@@ -68,6 +62,56 @@ impl Mailer {
             .map_err(|e| MailerError::SMTP(e))?;
         info!("Confirmation email sent.");
         Ok(())
+    }
+
+    fn render_standard_email(&self, info: &PaymentInfo) -> String {
+        format!(
+            r#"
+Bonjour {},
+
+Votre commande a bien été reçue et votre paiement confirmé, merci pour votre confiance !
+
+Votre variomètre STORM est en cours de préparation. Vous recevrez un email dès qu'il sera expédié.
+
+───────────────────────
+📦 Récapitulatif de commande
+───────────────────────
+Produit : Vario STORM
+Montant : {:.2} €
+Mode de livraison : Livraison France
+───────────────────────
+
+Si vous avez la moindre question d'ici là, n'hésitez pas à nous écrire à {}.
+
+Bons vols,
+L'équipe STORM Gear
+        "#,
+            info.customer_name, info.revenue, self.from_email
+        )
+    }
+
+    fn render_inperson_email(&self, info: &PaymentInfo) -> String {
+        format!(
+            r#"
+Bonjour {},
+
+Votre commande a bien été reçue et votre paiement confirmé, merci pour votre confiance !
+
+Vous avez choisi la remise en main propre. Pour convenir d'un rendez-vous, contactez-nous directement à {} en précisant vos disponibilités.
+
+───────────────────────
+📦 Récapitulatif de commande
+───────────────────────
+Produit : Vario STORM
+Montant : {:.2} €
+Mode de livraison : Remise en main propre
+───────────────────────
+
+À très vite sur le terrain,
+L'équipe STORM Gear
+                "#,
+            info.customer_name, self.from_email, info.revenue
+        )
     }
 }
 

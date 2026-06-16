@@ -17,7 +17,7 @@ impl AnalyticsServer {
         }
     }
 
-    pub async fn send_checkout_completed(&self, payment_info: PaymentInfo) {
+    pub async fn send_checkout_completed(&self, info: &PaymentInfo) {
         const EVENT_NAME: &str = "checkout-completed";
 
         let body = serde_json::json!({
@@ -25,12 +25,12 @@ impl AnalyticsServer {
             "payload": {
                 "website": self.website_id,
                 "name": EVENT_NAME,
-                "id": payment_info.analytics_id,
+                "id": info.analytics_id,
                 "data": {
-                    "revenue": payment_info.revenue,
-                    "currency": payment_info.currency,
-                    "customer_name": payment_info.customer_name,
-                    "customer_email": payment_info.customer_email,
+                    "revenue": info.revenue,
+                    "currency": info.currency,
+                    "customer_name": info.customer_name,
+                    "customer_email": info.customer_email,
                 }
             }
         });

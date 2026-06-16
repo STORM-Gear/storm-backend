@@ -23,10 +23,8 @@ pub async fn webhook_handler(
 
 async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
     let (_, mail_res) = tokio::join!(
-        app_data
-            .analytics
-            .send_checkout_completed(payment_info.clone()),
-        app_data.mailer.send_checkout_confirmation(payment_info),
+        app_data.analytics.send_checkout_completed(&payment_info),
+        app_data.mailer.send_checkout_confirmation(&payment_info),
     );
 
     if let Err(e) = mail_res {
