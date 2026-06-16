@@ -73,20 +73,12 @@ Votre commande a bien été reçue et votre paiement confirmé, merci pour votre
 
 Votre variomètre STORM est en cours de préparation. Vous recevrez un email dès qu'il sera expédié.
 
-───────────────────────
-📦 Récapitulatif de commande
-───────────────────────
-Produit : Vario STORM
-Montant : {:.2} €
-Mode de livraison : Livraison France
-───────────────────────
-
 Si vous avez la moindre question d'ici là, n'hésitez pas à nous écrire à {}.
 
 Bons vols,
 L'équipe STORM Gear
         "#,
-            info.customer_name, info.revenue, self.from_email
+            info.customer_name, self.from_email
         )
     }
 
@@ -99,18 +91,10 @@ Votre commande a bien été reçue et votre paiement confirmé, merci pour votre
 
 Vous avez choisi la remise en main propre. Pour convenir d'un rendez-vous, contactez-nous directement à {} en précisant vos disponibilités.
 
-───────────────────────
-📦 Récapitulatif de commande
-───────────────────────
-Produit : Vario STORM
-Montant : {:.2} €
-Mode de livraison : Remise en main propre
-───────────────────────
-
 À très vite sur le terrain,
 L'équipe STORM Gear
                 "#,
-            info.customer_name, self.from_email, info.revenue
+            info.customer_name, self.from_email,
         )
     }
 }
