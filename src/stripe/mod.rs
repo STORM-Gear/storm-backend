@@ -32,14 +32,14 @@ impl StripeWebhookHandler {
         request: HttpRequest,
         payload: web::Bytes,
     ) -> Result<PaymentInfo, HookError> {
-        let payload_str = std::str::from_utf8(&payload).unwrap();
+        let payload_str = std::str::from_utf8(&payload).map_err(|_| HookError::InvalidPayload)?;
 
         let stripe_signature = request
             .headers()
             .get("Stripe-Signature")
             .ok_or(HookError::MissingSignatureHeader)?
             .to_str()
-            .map_err(|_| HookError::InvalidPayload)?;
+            .map_err(|_| HookError::InvalidSignature)?;
 
         if let Ok(event) = Webhook::construct_event(payload_str, stripe_signature, &self.secret) {
             match event.data.object {
