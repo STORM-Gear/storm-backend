@@ -2312,6 +2312,7 @@ dependencies = [
  "async-stripe-webhook",
  "clap",
  "lettre",
+ "rand 0.10.1",
  "reqwest",
  "serde_json",
  "tokio",

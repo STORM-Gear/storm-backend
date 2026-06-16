@@ -28,3 +28,4 @@ lettre = { version = "0.11.22", default-features = false, features = [
   "smtp-transport",
   "tokio1-rustls-tls",
 ] }
+rand = "0.10"
