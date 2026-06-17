@@ -103,6 +103,10 @@
         pkgs,
         ...
       }: {
+        rust-project = {
+          src = self;
+        };
+
         devShells.default = pkgs.mkShell rec {
           name = "storm-backend";
 
