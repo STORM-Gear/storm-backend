@@ -42,8 +42,9 @@ impl Mailer {
 
     pub async fn send_checkout_confirmation(&self, info: &PaymentInfo) -> Result<(), MailerError> {
         let (subject, body) = match info.shipping_method {
-            ShippingMethod::France => (EMAIL_SUBJECT, self.render_standard_email(info)),
             ShippingMethod::InPerson => (EMAIL_SUBJECT_INPERSON, self.render_inperson_email(info)),
+            ShippingMethod::FranceStandard => (EMAIL_SUBJECT, self.render_standard_email(info)),
+            _ => todo!(),
         };
 
         let email = Message::builder()
