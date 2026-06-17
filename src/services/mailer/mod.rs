@@ -52,7 +52,9 @@ impl Mailer {
 
     pub async fn send_checkout_confirmation(&self, info: &PaymentInfo) -> Result<(), MailerError> {
         let subject = match info.shipping_method {
-            ShippingMethod::InPerson => "Votre STORM est prêt, à vous de jouer 🪂",
+            ShippingMethod::InPerson => {
+                "Votre STORM est prêt, prenez rendez-vous pour le récupérer ! 🪂"
+            }
             ShippingMethod::FranceStandard | ShippingMethod::International => {
                 "Votre STORM est en route ✈️"
             }
