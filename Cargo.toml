@@ -29,4 +29,5 @@ lettre = { version = "0.11.22", default-features = false, features = [
   "tokio1-rustls-tls",
 ] }
 rand = "0.10"
-minijinja = "2.20.0"
+minijinja = "2.20"
+css-inline = { version = "0.21", default-features = false }

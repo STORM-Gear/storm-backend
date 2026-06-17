@@ -21,6 +21,7 @@ pub struct Mailer {
 pub enum MailerError {
     Parse(AddressError),
     SMTP(SMTPError),
+    Inline(css_inline::InlineError),
 }
 
 impl Mailer {
@@ -75,6 +76,8 @@ impl Mailer {
                 from_email => self.from_email,
             })
             .unwrap();
+        // Inline for fucking Gmail
+        let body_inlined = css_inline::inline(&body).map_err(MailerError::Inline)?;
 
         let email = Message::builder()
             .from(self.from_email.parse().unwrap())
@@ -83,7 +86,7 @@ impl Mailer {
                 .parse()
                 .map_err(|e| MailerError::Parse(e))?)
             .subject(subject)
-            .singlepart(SinglePart::html(body))
+            .singlepart(SinglePart::html(body_inlined))
             .unwrap();
 
         self.client
@@ -100,6 +103,7 @@ impl std::fmt::Display for MailerError {
         match self {
             MailerError::Parse(e) => write!(f, "Failed to parse customer email address: {e}"),
             MailerError::SMTP(e) => write!(f, "Failed to send email over SMTP: {e}"),
+            MailerError::Inline(e) => write!(f, "Failed to inline rendered email: {e}"),
         }
     }
 }
