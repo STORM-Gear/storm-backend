@@ -6,11 +6,11 @@
 <title>Confirmation de commande STORM</title>
 <style>
     {% set color_base = '#2E3133' %}
-    {% set color_base-100 = '#444749' %}
-    {% set color_base-200 = '#5C5F61' %}
-    {% set color_base-300 = '#75777A' %}
-    {% set color_base-400 = '#8F9193' %}
-
+    {% set color_base_100 = '#444749' %}
+    {% set color_base_200 = '#5C5F61' %}
+    {% set color_base_300 = '#75777A' %}
+    {% set color_base_400 = '#8F9193' %}
+    
     {% set color_content = '#f5f5f5' %}
     {% set color_content_100 = '#ebebeb' %}
     {% set color_content_200 = '#e3e3e3' %}
@@ -30,8 +30,11 @@
   .subtitle { font-size: 14px; color: #666; margin: 0 0 32px; }
   .divider { border: none; border-top: 1px solid {{ color_content_400 }}; margin: 28px 0; }
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: {{ color_base_100 }}; margin: 0 0 12px; }
-  .summary-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; padding: 6px 0; color: {{ color_base_200 }}; }
-  .summary-row.total { font-weight: 600; font-size: 16px; color: {{ color_base_100 }}; padding-top: 12px; border-top: 1px solid {{ color_content_400 }}; margin-top: 4px; }
+  
+  .summary-table { width: 100%; font-size: 14px; color: {{ color_base_200 }}; }
+  .summary-table td { padding: 6px 0; }
+  .summary-table .total-row td { font-weight: 600; font-size: 16px; color: {{ color_base_100 }}; padding-top: 12px; border-top: 1px solid {{ color_content_400 }}; }
+
   .shipping-box { background: {{ color_base }}; border-radius: 6px; padding: 20px 24px; margin: 24px 0; }
   .shipping-box .icon { font-size: 24px; margin-bottom: 10px; }
   .shipping-box h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: {{ color_content }}; }
@@ -48,7 +51,7 @@
   .ref { font-size: 11px; color: {{ color_base_400 }}; margin-top: 8px !important; }
 </style>
 </head>
-<body>
+<body style="background: {{ color_content }};">
 <div class="wrapper">
 
   <div class="header">
@@ -60,8 +63,17 @@
     <p class="subtitle">Votre paiement a été confirmé. Voici le récapitulatif.</p>
 
     <p class="section-label">Récapitulatif</p>
-    <div class="summary-row"><span>Variomètre STORM</span><span>{{ amount }} {{ currency }}</span></div>
-    <div class="summary-row total"><span>Total</span><span>{{ amount }} {{ currency }}</span></div>
+    
+    <table class="summary-table" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td>Variomètre STORM</td>
+        <td align="right">{{ amount }} {{ currency }}</td>
+      </tr>
+      <tr class="total-row">
+        <td>Total</td>
+        <td align="right">{{ amount }} {{ currency }}</td>
+      </tr>
+    </table>
 
     <hr class="divider">
 
