@@ -81,14 +81,16 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
                 _ => Err(ParseError::UnhandledCurrency(currency.clone())),
             })?;
 
-        let customer_details = session
+        let name = session
+            .collected_information
+            .and_then(|info| info.shipping_details)
+            .map(|details| details.name)
+            .ok_or(ParseError::MissingField(
+                "collected_information.shipping_details.name",
+            ))?;
+        let email = session
             .customer_details
-            .ok_or(ParseError::MissingField("customer_details"))?;
-        let name = customer_details
-            .name
-            .ok_or(ParseError::MissingField("customer_details.name"))?;
-        let email = customer_details
-            .email
+            .and_then(|details| details.email)
             .ok_or(ParseError::MissingField("customer_details.email"))?;
 
         let id = session.client_reference_id;
