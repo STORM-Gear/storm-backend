@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmation de commande STORM</title>
+<style>
+  :root {
+    /* Base colors */
+    --color-base: #2E3133;
+    --color-base-100: #444749;
+    --color-base-200: #5C5F61;
+    --color-base-300: #75777A;
+    --color-base-400: #8F9193;
+
+    --color-content: #f5f5f5;
+    --color-content-100: #ebebeb;
+    --color-content-200: #e3e3e3;
+    --color-content-300: #dadada;
+    --color-content-400: #d4d4d4;
+
+    --color-primary: #451bea;
+    --color-primary-dark: #3614b9;
+    --color-primary-light: #4a1dff;
+  }
+
+  body { margin: 0; padding: 0; background: var(--color-content); font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+  .wrapper { max-width: 580px; margin: 32px auto; background: white; border-radius: 8px; overflow: hidden; }
+  .header { background: var(--color-base); padding: 28px 40px; text-align: center; }
+  .header img { height: 36px; color: var(--color-content) }
+  .body { padding: 40px 40px 32px; color: var(color-base-200); }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 8px; color: var(--color-base-100); }
+  .subtitle { font-size: 14px; color: #666; margin: 0 0 32px; }
+  .divider { border: none; border-top: 1px solid var(--color-content-400); margin: 28px 0; }
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-base-100); margin: 0 0 12px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; padding: 6px 0; color: var(--color-base-200); }
+  .summary-row.total { font-weight: 600; font-size: 16px; color: var(--color-base-100); padding-top: 12px; border-top: 1px solid var(--color-content-400); margin-top: 4px; }
+  .shipping-box { background: var(--color-base); border-radius: 6px; padding: 20px 24px; margin: 24px 0; }
+  .shipping-box .icon { font-size: 24px; margin-bottom: 10px; }
+  .shipping-box h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: var(--color-content); }
+  .shipping-box p { font-size: 14px; color: var(--color-content-400); margin: 0; line-height: 1.6; }
+  .shipping-box a { color: var(--color-content-400); font-weight: 500; }
+  .shipping-box .delay { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 500; color: var(--color-content-200); background: var(--color-base-100); border-radius: 4px; padding: 3px 10px; }
+  .contact { font-size: 13px; color: var(--color-base-200); margin: 24px 0 0; line-height: 1.6; }
+  .contact a { color: var(--color-base-200); font-weight: 500; }
+  .cta { display: block; margin: 28px 0 0; text-align: center; }
+  .cta a { display: inline-block; background: var(--color-base); color: var(--color-content); text-decoration: none; font-size: 14px; font-weight: 500; padding: 12px 28px; border-radius: 6px; }
+  .footer { background: var(--color-base); padding: 24px 40px; text-align: center; }
+  .footer p { font-size: 12px; color: var(--color-content-400); margin: 0 0 4px; line-height: 1.6; }
+  .footer a { color: var(--color-content-400); }
+  .ref { font-size: 11px; color: var(--color-base-400); margin-top: 8px !important; }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="header">
+    <img src="{{ logo_url }}" alt="STORM Gear" />
+  </div>
+
+  <div class="body">
+    <h1>Merci pour votre commande, {{ customer_name }} !</h1>
+    <p class="subtitle">Votre paiement a été confirmé. Voici le récapitulatif.</p>
+
+    <p class="section-label">Récapitulatif</p>
+    <div class="summary-row"><span>Variomètre STORM</span><span>{{ amount }} {{ currency }}</span></div>
+    <div class="summary-row total"><span>Total</span><span>{{ amount }} {{ currency }}</span></div>
+
+    <hr class="divider">
+
+    {% if shipping_method == "InPerson" %}
+    <div class="shipping-box">
+      <div class="icon">🤝</div>
+      <h2>Remise en main propre - Grenoble</h2>
+      <p>Pour convenir d'un rendez-vous, contactez-nous directement à l'adresse ci-dessous en précisant vos disponibilités. On s'adapte.</p>
+      <p style="margin-top: 10px;"><a href="mailto:{{ from_email }}">{{ from_email }}</a></p>
+    </div>
+
+    {% elif shipping_method == "FranceStandard" %}
+    <div class="shipping-box">
+      <div class="icon">📬</div>
+      <h2>Livraison France - Standard</h2>
+      <p>Votre variomètre sera expédié sous 24–48h. La livraison standard ne comprend pas de numéro de suivi.</p>
+      <span class="delay">Délai estimé : 2–4 jours</span>
+    </div>
+
+    {% elif shipping_method == "FranceTracking" %}
+    <div class="shipping-box">
+      <div class="icon">📦</div>
+      <h2>Livraison France - Avec suivi</h2>
+      <p>Votre variomètre sera expédié sous 24–48h. Nous vous transmettrons votre numéro de suivi par email dès l'expédition.</p>
+      <span class="delay">Délai estimé : 2–4 jours</span>
+    </div>
+
+    {% elif shipping_method == "FranceExpressTracking" %}
+    <div class="shipping-box">
+      <div class="icon">⚡</div>
+      <h2>Livraison France - Express avec suivi</h2>
+      <p>Votre variomètre sera expédié en priorité. Nous vous transmettrons votre numéro de suivi par email dès l'expédition.</p>
+      <span class="delay">Délai estimé : 1–3 jours</span>
+    </div>
+
+    {% elif shipping_method == "International" %}
+    <div class="shipping-box">
+      <div class="icon">🌍</div>
+      <h2>Livraison internationale</h2>
+      <p>Votre variomètre sera expédié sous 24–48h vers votre pays. La livraison standard internationale ne comprend pas de numéro de suivi.</p>
+      <span class="delay">Europe : ~5 jours · International : 5–8 jours</span>
+    </div>
+
+    {% elif shipping_method == "InternationalTracking" %}
+    <div class="shipping-box">
+      <div class="icon">🌍</div>
+      <h2>Livraison internationale - Avec suivi</h2>
+      <p>Votre variomètre sera expédié sous 24–48h. Nous vous transmettrons votre numéro de suivi par email dès l'expédition.</p>
+      <span class="delay">Europe : ~5 jours · International : 5–8 jours</span>
+    </div>
+    {% endif %}
+
+    <p class="contact">
+      Une question ? Écrivez-nous à
+      <a href="mailto:{{ from_email }}">{{ from_email }}</a>.
+    </p>
+
+    <div class="cta">
+      <a href="https://stormvario.fr/user-manual?utm_source=order_confirmation&utm_medium=email">Découvrir la doc technique →</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>STORM Gear - Grenoble, France</p>
+    <p><a href="https://stormvario.fr/cgv">CGV</a> · <a href="mailto:{{ from_email }}">Contact</a></p>
+    <p class="ref">Réf. commande : {{ payment_id }}</p>
+  </div>
+
+</div>
+</body>
+</html>
