@@ -117,10 +117,12 @@
     </div>
     {% endif %}
 
+    {% if shipping_method != "InPerson" %}
     <p class="contact">
       Une question ? Écrivez-nous à
       <a href="mailto:{{ from_email }}">{{ from_email }}</a>.
     </p>
+    {% endif %}
 
     <div class="cta">
       <a href="https://stormvario.fr/user-manual?utm_source=order_confirmation&utm_medium=email">Découvrir la doc technique →</a>
