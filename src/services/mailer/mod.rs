@@ -66,7 +66,7 @@ impl Mailer {
         let template = self.templates.get_template("confirmation_fr").unwrap();
         let body = template
             .render(context! {
-                logo_url => "https://stormvario.fr/logo.svg",
+                logo_url => "https://stormvario.fr/logo.png",
                 customer_name => info.customer_name,
                 amount => format!("{:.2}", info.revenue),
                 currency => info.currency.to_uppercase(),
