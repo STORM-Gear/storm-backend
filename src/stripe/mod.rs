@@ -21,6 +21,7 @@ pub struct PaymentInfo {
     pub customer_email: String,
     pub analytics_id: Option<String>,
     pub shipping_method: ShippingMethod,
+    pub payment_id: String,
 }
 
 #[derive(Debug, Clone)]
@@ -107,6 +108,12 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
 
         let shipping_method = ShippingMethod::from_str(shipping_rate.id().as_str())?;
 
+        let payment_id = session
+            .payment_intent
+            .ok_or(ParseError::MissingField("payment_intent"))?
+            .id()
+            .to_string();
+
         Ok(Self {
             revenue,
             currency,
@@ -114,6 +121,7 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
             customer_email: email,
             analytics_id: id,
             shipping_method,
+            payment_id,
         })
     }
 }
