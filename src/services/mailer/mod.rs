@@ -70,6 +70,7 @@ impl Mailer {
                 currency => info.currency.to_uppercase(),
                 payment_id => info.payment_id,
                 shipping_method => format!("{:?}", info.shipping_method),
+                from_email => self.from_email,
             })
             .unwrap();
 
