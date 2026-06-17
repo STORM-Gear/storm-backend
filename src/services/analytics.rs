@@ -20,20 +20,22 @@ impl AnalyticsServer {
     pub async fn send_checkout_completed(&self, info: &PaymentInfo) {
         const EVENT_NAME: &str = "checkout-completed";
 
-        let body = serde_json::json!({
-            "type": "event",
-            "payload": {
-                "website": self.website_id,
-                "name": EVENT_NAME,
-                "id": info.analytics_id,
-                "data": {
-                    "revenue": info.revenue,
-                    "currency": info.currency,
-                    "customer_name": info.customer_name,
-                    "customer_email": info.customer_email,
-                }
+        let mut payload = serde_json::json!({
+            "website": self.website_id,
+            "name": EVENT_NAME,
+            "data": {
+                "revenue": info.revenue,
+                "currency": info.currency,
+                "customer_name": info.customer_name,
+                "customer_email": info.customer_email,
             }
         });
+
+        if let Some(id) = &info.analytics_id {
+            payload["id"] = serde_json::json!(id);
+        }
+
+        let body = serde_json::json!({ "type": "event", "payload": payload });
 
         let res = self.client.post(&self.api_url).json(&body).send().await;
 
