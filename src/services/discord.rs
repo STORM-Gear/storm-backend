@@ -47,6 +47,7 @@ impl DiscordWebhook {
                 {
                   "color": 0x451bea,
                   "title": "🪂 Nouvelle commande !",
+                  "url": format!("https://dashboard.stripe.com/payments/{}", info.payment_id),
                   "image": {
                     "url": MEME_URLS.choose(&mut rand::rng())
                   },
