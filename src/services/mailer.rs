@@ -10,9 +10,6 @@ use crate::{
     utils::get_env_var,
 };
 
-const EMAIL_SUBJECT: &str = "Votre STORM est en route ✈️";
-const EMAIL_SUBJECT_INPERSON: &str = "Votre STORM est prêt, à vous de jouer 🪂";
-
 pub struct Mailer {
     from_email: String,
     client: AsyncSmtpTransport<Tokio1Executor>,
@@ -42,9 +39,20 @@ impl Mailer {
 
     pub async fn send_checkout_confirmation(&self, info: &PaymentInfo) -> Result<(), MailerError> {
         let (subject, body) = match info.shipping_method {
-            ShippingMethod::InPerson => (EMAIL_SUBJECT_INPERSON, self.render_inperson_email(info)),
-            ShippingMethod::FranceStandard => (EMAIL_SUBJECT, self.render_standard_email(info)),
-            _ => todo!(),
+            ShippingMethod::InPerson => (
+                "Votre STORM est prêt, à vous de jouer 🪂",
+                self.render_inperson_email(info),
+            ),
+            ShippingMethod::FranceStandard | ShippingMethod::International => (
+                "Votre STORM est en route ✈️",
+                self.render_standard_email(info),
+            ),
+            ShippingMethod::FranceTracking
+            | ShippingMethod::InternationalTracking
+            | ShippingMethod::FranceExpressTracking => (
+                "Votre STORM est en route ✈️",
+                self.render_tracking_email(info),
+            ),
         };
 
         let email = Message::builder()
@@ -65,6 +73,22 @@ impl Mailer {
         Ok(())
     }
 
+    fn render_inperson_email(&self, info: &PaymentInfo) -> String {
+        format!(
+            r#"
+Bonjour {},
+
+Votre commande a bien été reçue et votre paiement confirmé, merci pour votre confiance !
+
+Vous avez choisi la remise en main propre. Pour convenir d'un rendez-vous, contactez-nous directement à {} en précisant vos disponibilités.
+
+À très vite sur le terrain,
+L'équipe STORM Gear
+                "#,
+            info.customer_name, self.from_email,
+        )
+    }
+
     fn render_standard_email(&self, info: &PaymentInfo) -> String {
         format!(
             r#"
@@ -83,16 +107,18 @@ L'équipe STORM Gear
         )
     }
 
-    fn render_inperson_email(&self, info: &PaymentInfo) -> String {
+    fn render_tracking_email(&self, info: &PaymentInfo) -> String {
         format!(
             r#"
 Bonjour {},
 
 Votre commande a bien été reçue et votre paiement confirmé, merci pour votre confiance !
 
-Vous avez choisi la remise en main propre. Pour convenir d'un rendez-vous, contactez-nous directement à {} en précisant vos disponibilités.
+Votre variomètre STORM est en cours de préparation. Vous recevrez un email de suivi dès qu'il sera expédié.
 
-À très vite sur le terrain,
+Si vous avez la moindre question d'ici là, n'hésitez pas à nous écrire à {}.
+
+Bons vols,
 L'équipe STORM Gear
                 "#,
             info.customer_name, self.from_email,
