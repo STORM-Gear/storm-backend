@@ -1,12 +1,14 @@
 # Storm Backend
 
-A lightweight Rust backend service for forwarding Stripe payments to [umami](https://umami.is/) analytics.
+A lightweight Rust backend service for forwarding Stripe payments to
+[umami](https://umami.is/) analytics.
 
 ## Features
 
 - **Actix-web** server for fast HTTP handling
 - **Stripe** webhook processing
 - **Umami Analytics** integration
+- **Discord** webhook notifications
 - Environment-based configuration
 
 ## Getting Started
@@ -32,6 +34,7 @@ cargo run -- --port 8080 --bind-address 127.0.0.1
 ```
 
 **Options:**
+
 - `--port` (default: 8080)
 - `--bind-address` (default: 127.0.0.1)
 
