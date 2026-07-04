@@ -10,7 +10,7 @@ use crate::utils::get_env_var;
 use errors::{PaymentInfoParsingError as ParseError, WebhookProcessingError as HookError};
 
 pub struct StripeWebhookHandler {
-    secret: String,
+    signing_secret: String,
 }
 
 #[derive(Debug, Clone)]
@@ -37,7 +37,7 @@ pub enum ShippingMethod {
 impl StripeWebhookHandler {
     pub fn from_env() -> Self {
         Self {
-            secret: get_env_var("STRIPE_SECRET"),
+            signing_secret: get_env_var("STRIPE_SIGNING_SECRET"),
         }
     }
 
@@ -55,7 +55,9 @@ impl StripeWebhookHandler {
             .to_str()
             .map_err(|_| HookError::InvalidSignature)?;
 
-        if let Ok(event) = Webhook::construct_event(payload_str, stripe_signature, &self.secret) {
+        if let Ok(event) =
+            Webhook::construct_event(payload_str, stripe_signature, &self.signing_secret)
+        {
             match event.data.object {
                 EventObject::CheckoutSessionCompleted(session) => {
                     PaymentInfo::try_from(*session).map_err(|e| HookError::ParseError(e))
