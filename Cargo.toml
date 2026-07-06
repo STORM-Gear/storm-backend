@@ -18,7 +18,10 @@ async-stripe = "1.0.0-rc.6"
 async-stripe-webhook = { version = "1.0.0-rc.6", features = [
   "async-stripe-checkout",
 ] }
-async-stripe-checkout = { version = "1.0.0-rc.6", features = ["serialize"] }
+async-stripe-checkout = { version = "1.0.0-rc.6", features = [
+  "checkout_session",
+  "serialize",
+] }
 
 reqwest = { version = "0.13", features = ["json"] }
 serde_json = "1.0"
