@@ -6,8 +6,10 @@ use stripe_checkout::{CheckoutSession, checkout_session::RetrieveCheckoutSession
 use stripe_webhook::{EventObject, Webhook};
 
 pub mod errors;
+mod product;
 mod shipping;
 
+pub use product::Product;
 pub use shipping::ShippingMethod;
 
 use crate::utils::get_env_var;
@@ -25,6 +27,7 @@ pub struct PaymentInfo {
     pub customer_name: String,
     pub customer_email: String,
     pub analytics_id: Option<String>,
+    pub products: Vec<Product>,
     pub shipping_method: ShippingMethod,
     pub payment_id: String,
 }
@@ -92,19 +95,35 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
                 _ => Err(ParseError::UnhandledCurrency(currency.clone())),
             })?;
 
-        let name = session
+        let customer_name = session
             .collected_information
             .and_then(|info| info.shipping_details)
             .map(|details| details.name)
             .ok_or(ParseError::MissingField(
                 "collected_information.shipping_details.name",
             ))?;
-        let email = session
+        let customer_email = session
             .customer_details
             .and_then(|details| details.email)
             .ok_or(ParseError::MissingField("customer_details.email"))?;
 
-        let id = session.client_reference_id;
+        let analytics_id = session.client_reference_id;
+
+        let products = session
+            .line_items
+            .ok_or(ParseError::MissingField("line_items"))?
+            .data
+            .into_iter()
+            .map(|line_item| {
+                let product_id = line_item
+                    .price
+                    .ok_or(ParseError::MissingField("line_items.price"))?
+                    .product
+                    .into_id();
+
+                Product::from_str(&product_id)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
         let shipping_rate = session
             .shipping_cost
@@ -123,9 +142,10 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
         Ok(Self {
             revenue,
             currency,
-            customer_name: name,
-            customer_email: email,
-            analytics_id: id,
+            customer_name,
+            customer_email,
+            analytics_id,
+            products,
             shipping_method,
             payment_id,
         })
