@@ -58,6 +58,11 @@ impl DiscordWebhook {
                       "inline": false
                     },
                     {
+                      "name": "🛒  Produits",
+                      "value": info.products.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(", "),
+                      "inline": false
+                    },
+                    {
                       "name": "📦  Mode de livraison",
                       "value": info.shipping_method.to_string(),
                       "inline": false
