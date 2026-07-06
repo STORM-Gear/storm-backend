@@ -105,6 +105,9 @@
       }: {
         rust-project = {
           src = self;
+          crates."storm-backend".crane.args.buildInputs = with pkgs; [
+            openssl
+          ];
         };
 
         devShells.default = pkgs.mkShell rec {
