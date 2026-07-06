@@ -18,4 +18,4 @@ jobs:
         with:
           name: gasdev
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-      - run: nix build --no-link --print-out-paths | cachix push gasdev
+      - run: set -o pipefail; nix build --no-link --print-out-paths | cachix push gasdev
