@@ -9,7 +9,7 @@ pub async fn webhook_handler(
     payload: web::Bytes,
     app_data: web::Data<AppState>,
 ) -> impl Responder {
-    match app_data.stripe.get_payment_info(request, payload) {
+    match app_data.stripe.get_payment_info(request, payload).await {
         Ok(payment_info) => {
             payment_pipeline(payment_info, &app_data).await;
         }

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use actix_web::{HttpRequest, web};
 use stripe::Client;
-use stripe_checkout::CheckoutSession;
+use stripe_checkout::{CheckoutSession, checkout_session::RetrieveCheckoutSession};
 use stripe_webhook::{EventObject, Webhook};
 
 pub mod errors;
@@ -11,6 +11,7 @@ use crate::utils::get_env_var;
 use errors::{PaymentInfoParsingError as ParseError, WebhookProcessingError as HookError};
 
 pub struct StripeWebhookHandler {
+    client: Client,
     signing_secret: String,
 }
 
@@ -37,12 +38,14 @@ pub enum ShippingMethod {
 
 impl StripeWebhookHandler {
     pub fn from_env() -> Self {
+        let secret_key = get_env_var("STRIPE_SECRET_KEY");
         Self {
+            client: Client::new(secret_key),
             signing_secret: get_env_var("STRIPE_SIGNING_SECRET"),
         }
     }
 
-    pub fn get_payment_info(
+    pub async fn get_payment_info(
         &self,
         request: HttpRequest,
         payload: web::Bytes,
@@ -61,7 +64,14 @@ impl StripeWebhookHandler {
         {
             match event.data.object {
                 EventObject::CheckoutSessionCompleted(session) => {
-                    PaymentInfo::try_from(*session).map_err(|e| HookError::ParseError(e))
+                    // Fetch session with "line_items" expanded
+                    let session = RetrieveCheckoutSession::new(&session.id)
+                        .expand(["line_items".to_string()])
+                        .send(&self.client)
+                        .await
+                        .map_err(HookError::Stripe)?;
+
+                    PaymentInfo::try_from(session).map_err(HookError::ParseError)
                 }
                 _ => Err(HookError::UnhandledEvent(event.type_)),
             }

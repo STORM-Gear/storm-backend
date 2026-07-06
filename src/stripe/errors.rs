@@ -1,3 +1,4 @@
+use stripe::StripeError;
 use stripe_webhook::EventType;
 
 pub enum WebhookProcessingError {
@@ -6,6 +7,7 @@ pub enum WebhookProcessingError {
     InvalidSignature,
     UnhandledEvent(EventType),
     ParseError(PaymentInfoParsingError),
+    Stripe(StripeError),
 }
 
 pub enum PaymentInfoParsingError {
@@ -27,6 +29,7 @@ impl std::fmt::Display for WebhookProcessingError {
                 f,
                 "Failed to build `PaymentInfo` from `CheckoutSession: {e}`"
             ),
+            WebhookProcessingError::Stripe(e) => writeln!(f, "Failed to call Stripe API: {e}"),
         }
     }
 }
