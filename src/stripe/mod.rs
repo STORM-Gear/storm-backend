@@ -6,7 +6,9 @@ use stripe_checkout::{CheckoutSession, checkout_session::RetrieveCheckoutSession
 use stripe_webhook::{EventObject, Webhook};
 
 pub mod errors;
-pub mod shipping;
+mod shipping;
+
+pub use shipping::ShippingMethod;
 
 use crate::utils::get_env_var;
 use errors::{PaymentInfoParsingError as ParseError, WebhookProcessingError as HookError};
@@ -23,7 +25,7 @@ pub struct PaymentInfo {
     pub customer_name: String,
     pub customer_email: String,
     pub analytics_id: Option<String>,
-    pub shipping_method: shipping::ShippingMethod,
+    pub shipping_method: ShippingMethod,
     pub payment_id: String,
 }
 
@@ -110,7 +112,7 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
             .shipping_rate
             .ok_or(ParseError::MissingField("shipping_cost.shipping_rate"))?;
 
-        let shipping_method = shipping::ShippingMethod::from_str(shipping_rate.id().as_str())?;
+        let shipping_method = ShippingMethod::from_str(shipping_rate.id().as_str())?;
 
         let payment_id = session
             .payment_intent
