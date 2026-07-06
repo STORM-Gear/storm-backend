@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use actix_web::{HttpRequest, web};
-use stripe_shared::CheckoutSession;
+use stripe::Client;
+use stripe_checkout::CheckoutSession;
 use stripe_webhook::{EventObject, Webhook};
 
 pub mod errors;

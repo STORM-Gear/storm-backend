@@ -1,4 +1,4 @@
-use stripe_shared::EventType;
+use stripe_webhook::EventType;
 
 pub enum WebhookProcessingError {
     MissingSignatureHeader,
