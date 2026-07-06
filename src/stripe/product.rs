@@ -17,7 +17,7 @@ impl FromStr for Product {
             "prod_Tx78EpjfgGBXBY" => Ok(Self::Storm),
             "prod_UeYnwJRcC0Bdjd" => Ok(Self::ChargingCable),
             "prod_UeYkOsu0lehYzY" => Ok(Self::Velcro),
-            _ => Err(PaymentInfoParsingError::UnknownShippingRate(s.to_string())),
+            _ => Err(PaymentInfoParsingError::UnknownProduct(s.to_string())),
         }
     }
 }
