@@ -9,6 +9,7 @@ use crate::{
     stripe::StripeWebhookHandler,
 };
 
+mod db;
 mod routes;
 mod services;
 mod stripe;
