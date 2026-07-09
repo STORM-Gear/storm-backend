@@ -12,6 +12,19 @@ pub enum ShippingMethod {
     InternationalTracking,
 }
 
+impl ShippingMethod {
+    pub fn stripe_id(&self) -> &str {
+        match self {
+            Self::InPerson => "shr_1Tiu9nPB7bMAkkZ4zSCGHOUr",
+            Self::FranceStandard => "shr_1TiyHqPB7bMAkkZ4ndxsCgTc",
+            Self::FranceTracking => "shr_1TiyIfPB7bMAkkZ4CTkSVxKw",
+            Self::FranceExpressTracking => "shr_1TiyJFPB7bMAkkZ4XEZdfomw",
+            Self::International => "shr_1TiyJpPB7bMAkkZ4LdAkJKwu",
+            Self::InternationalTracking => "shr_1TiyKOPB7bMAkkZ4k81e2V4f",
+        }
+    }
+}
+
 impl FromStr for ShippingMethod {
     type Err = PaymentInfoParsingError;
 

@@ -9,6 +9,16 @@ pub enum Product {
     Velcro,
 }
 
+impl Product {
+    pub fn stripe_id(&self) -> &str {
+        match self {
+            Self::Storm => "prod_Tx78EpjfgGBXBY",
+            Self::ChargingCable => "prod_UeYnwJRcC0Bdjd",
+            Self::Velcro => "prod_UeYkOsu0lehYzY",
+        }
+    }
+}
+
 impl FromStr for Product {
     type Err = PaymentInfoParsingError;
 
