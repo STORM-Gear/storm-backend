@@ -1,88 +1,102 @@
-use toasty::{Deferred, Model};
+use toasty::{Deferred, Embed, Model};
 
 #[derive(Debug, Model)]
 pub struct Product {
     #[key]
     #[auto]
-    id: u64,
+    pub id: u64,
 
     #[unique]
-    stripe_id: String,
+    pub stripe_id: String,
 
-    name: String,
-    stock: u32,
+    pub name: String,
+    pub stock: u32,
 }
 
 #[derive(Debug, Model)]
 pub struct ShippingMethod {
     #[key]
     #[auto]
-    id: u64,
+    pub id: u64,
 
     #[unique]
-    stripe_id: String,
+    pub stripe_id: String,
 
-    name: String,
+    pub name: String,
 }
 
 #[derive(Debug, Model)]
 pub struct Customer {
     #[key]
     #[auto]
-    id: u64,
+    pub id: u64,
     #[auto]
-    created_at: jiff::Timestamp,
+    pub created_at: jiff::Timestamp,
     #[auto]
-    updated_at: jiff::Timestamp,
+    pub updated_at: jiff::Timestamp,
 
-    name: String,
+    pub name: String,
     #[unique]
-    email: String,
+    pub email: String,
 
     #[has_many]
-    orders: Deferred<Vec<Order>>,
+    pub orders: Deferred<Vec<Order>>,
 }
 
 #[derive(Debug, Model)]
-pub struct OrderProducts {
+pub struct OrderProduct {
     #[key]
     #[auto]
-    id: u64,
+    pub id: u64,
 
     #[index]
-    order_id: u64,
+    pub order_id: u64,
     #[belongs_to]
-    order: Deferred<Order>,
+    pub order: Deferred<Order>,
     #[index]
-    product_id: u64,
+    pub product_id: u64,
     #[belongs_to]
-    product: Deferred<Product>,
+    pub product: Deferred<Product>,
+}
+
+#[derive(Debug, Embed)]
+pub enum OrderStatus {
+    #[column(variant = 1)]
+    Ordered,
+    #[column(variant = 2)]
+    Packaged,
+    #[column(variant = 3)]
+    Shipped,
+    #[column(variant = 4)]
+    Received,
 }
 
 #[derive(Debug, Model)]
 pub struct Order {
     #[key]
     #[auto]
-    id: u64,
+    pub id: u64,
     #[auto]
-    created_at: jiff::Timestamp,
+    pub created_at: jiff::Timestamp,
     #[auto]
-    updated_at: jiff::Timestamp,
+    pub updated_at: jiff::Timestamp,
 
-    amount: f32,
+    pub amount: f64,
+    pub status: OrderStatus,
+    pub tracking_id: Option<String>,
 
     #[index]
-    customer_id: u64,
+    pub customer_id: u64,
     #[belongs_to]
-    customer: Customer,
+    pub customer: Customer,
 
     #[index]
-    shipping_method_id: u64,
+    pub shipping_method_id: u64,
     #[belongs_to]
-    shipping_method: Option<ShippingMethod>,
+    pub shipping_method: Option<ShippingMethod>,
 
     #[has_many]
-    order_products: Deferred<Vec<OrderProducts>>,
+    pub order_products: Deferred<Vec<OrderProduct>>,
     #[has_many(via = order_products.product)]
-    products: Vec<Product>,
+    pub products: Vec<Product>,
 }
