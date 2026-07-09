@@ -14,6 +14,18 @@ pub struct Product {
 }
 
 #[derive(Debug, Model)]
+pub struct ShippingMethod {
+    #[key]
+    #[auto]
+    id: u64,
+
+    #[unique]
+    stripe_id: String,
+
+    name: String,
+}
+
+#[derive(Debug, Model)]
 pub struct Customer {
     #[key]
     #[auto]
@@ -29,15 +41,6 @@ pub struct Customer {
 
     #[has_many]
     orders: Deferred<Vec<Order>>,
-}
-
-#[derive(Debug, Model)]
-pub struct ShippingMethod {
-    #[key]
-    #[auto]
-    id: u64,
-
-    name: String,
 }
 
 #[derive(Debug, Model)]
