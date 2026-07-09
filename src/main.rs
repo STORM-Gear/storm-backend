@@ -1,5 +1,6 @@
 use actix_web::*;
 use clap::Parser;
+use toasty_cli::{MigrationCommand, ToastyCli};
 use tracing::info;
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
@@ -17,7 +18,13 @@ mod utils;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args {
+enum Args {
+    Run(RunCommand),
+    Migration(MigrationCommand),
+}
+
+#[derive(Parser, Debug)]
+struct RunCommand {
     /// The port to start the server on
     #[arg(short, long, default_value_t = 8080)]
     port: u16,
@@ -41,7 +48,26 @@ async fn main() -> std::io::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let Args { port, bind_address } = Args::parse();
+    let args = Args::parse();
+
+    let db_url = utils::get_env_var("DB_URL");
+    let db = toasty::Db::builder()
+        .models(toasty::models!(crate::*))
+        .connect(&db_url)
+        .await
+        .unwrap();
+
+    let Args::Run(RunCommand { port, bind_address }) = args else {
+        let Args::Migration(_) = args else {
+            unreachable!()
+        };
+
+        let config = toasty_cli::Config::load().unwrap();
+        let cli = ToastyCli::with_config(db, config);
+        cli.parse_and_run().await.unwrap();
+
+        return Ok(());
+    };
 
     let stripe = StripeWebhookHandler::from_env();
     let analytics = AnalyticsServer::from_env();
