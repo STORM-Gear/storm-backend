@@ -1,11 +1,13 @@
 use actix_web::*;
 use clap::Parser;
 use toasty_cli::{MigrationCommand, ToastyCli};
+use tokio::sync::Mutex;
 use tracing::info;
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
+    db::DbService,
     services::{analytics::AnalyticsServer, discord::DiscordWebhook, mailer::Mailer},
     stripe::StripeWebhookHandler,
 };
@@ -35,6 +37,7 @@ struct RunCommand {
 }
 
 struct AppState {
+    db: Mutex<DbService>,
     stripe: StripeWebhookHandler,
     analytics: AnalyticsServer,
     mailer: Mailer,
@@ -50,12 +53,7 @@ async fn main() -> std::io::Result<()> {
 
     let args = Args::parse();
 
-    let db_url = utils::get_env_var("DB_URL");
-    let db = toasty::Db::builder()
-        .models(toasty::models!(crate::*))
-        .connect(&db_url)
-        .await
-        .unwrap();
+    let db = DbService::connect().await;
 
     let Args::Run(RunCommand { port, bind_address }) = args else {
         let Args::Migration(_) = args else {
@@ -63,7 +61,7 @@ async fn main() -> std::io::Result<()> {
         };
 
         let config = toasty_cli::Config::load().unwrap();
-        let cli = ToastyCli::with_config(db, config);
+        let cli = ToastyCli::with_config(db.pop_db(), config);
         cli.parse_and_run().await.unwrap();
 
         return Ok(());
@@ -75,6 +73,7 @@ async fn main() -> std::io::Result<()> {
     let discord = DiscordWebhook::from_env();
 
     let app_data = web::Data::new(AppState {
+        db: Mutex::new(db),
         stripe,
         analytics,
         mailer,
