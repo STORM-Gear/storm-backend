@@ -106,5 +106,5 @@ pub struct Order {
     #[has_many]
     pub order_products: Deferred<Vec<OrderProduct>>,
     #[has_many(via = order_products.product)]
-    pub products: Vec<Product>,
+    pub products: Deferred<Vec<Product>>,
 }
