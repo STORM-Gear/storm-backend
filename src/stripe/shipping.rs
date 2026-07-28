@@ -6,13 +6,13 @@ use super::errors::PaymentInfoParsingError;
 
 #[derive(Debug, Clone)]
 pub struct ShippingDetails {
-    name: String,
-    city: Option<String>,
-    country: Option<String>,
-    line1: Option<String>,
-    line2: Option<String>,
-    postal_code: Option<String>,
-    state: Option<String>,
+    pub name: String,
+    pub city: Option<String>,
+    pub country: Option<String>,
+    pub line1: Option<String>,
+    pub line2: Option<String>,
+    pub postal_code: Option<String>,
+    pub state: Option<String>,
 }
 
 #[derive(Debug, Clone)]

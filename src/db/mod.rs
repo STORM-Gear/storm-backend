@@ -80,6 +80,14 @@ impl DbService {
             status: models::OrderStatus::Ordered,
             customer_id: customer.id,
             shipping_method_id: shipping_method.id,
+
+            shipping_name: payment.shipping_details.name,
+            shipping_city: payment.shipping_details.city,
+            shipping_country: payment.shipping_details.country,
+            shipping_line1: payment.shipping_details.line1,
+            shipping_line2: payment.shipping_details.line2,
+            shipping_postal_code: payment.shipping_details.postal_code,
+            shipping_state: payment.shipping_details.state,
         })
         .exec(&mut tx)
         .await

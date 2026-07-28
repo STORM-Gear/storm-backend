@@ -85,6 +85,14 @@ pub struct Order {
     pub status: OrderStatus,
     pub tracking_id: Option<String>,
 
+    pub shipping_name: String,
+    pub shipping_city: Option<String>,
+    pub shipping_country: Option<String>,
+    pub shipping_line1: Option<String>,
+    pub shipping_line2: Option<String>,
+    pub shipping_postal_code: Option<String>,
+    pub shipping_state: Option<String>,
+
     #[index]
     pub customer_id: u64,
     #[belongs_to]
