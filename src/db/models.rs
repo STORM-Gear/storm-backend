@@ -96,7 +96,7 @@ pub struct Order {
     #[index]
     pub customer_id: u64,
     #[belongs_to]
-    pub customer: Customer,
+    pub customer: Deferred<Customer>,
 
     #[index]
     pub shipping_method_id: u64,
