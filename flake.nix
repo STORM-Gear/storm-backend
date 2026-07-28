@@ -54,7 +54,7 @@
 
             secretsFile = mkOption {
               type = types.path;
-              description = "Path to file containing secrets (STRIPE_SECRET, ANALYTICS_WEBSITE_ID, ANALYTICS_API_URL)";
+              description = "Path to file containing secrets (STRIPE_SECRET, ANALYTICS_WEBSITE_ID, ANALYTICS_API_URL, DB_URL)";
             };
 
             user = mkOption {
@@ -85,6 +85,7 @@
 
               serviceConfig = {
                 Type = "simple";
+                ExecStartPre = "${cfg.package}/bin/storm-backend migration apply";
                 ExecStart = "${cfg.package}/bin/storm-backend run --port ${toString cfg.port} --bind-address ${cfg.bindAddress}";
                 EnvironmentFile = cfg.secretsFile;
                 Restart = "on-failure";
