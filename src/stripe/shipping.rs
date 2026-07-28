@@ -1,6 +1,19 @@
 use std::str::FromStr;
 
+use stripe_checkout::PaymentPagesCheckoutSessionCheckoutAddressDetails;
+
 use super::errors::PaymentInfoParsingError;
+
+#[derive(Debug, Clone)]
+pub struct ShippingDetails {
+    name: String,
+    city: Option<String>,
+    country: Option<String>,
+    line1: Option<String>,
+    line2: Option<String>,
+    postal_code: Option<String>,
+    state: Option<String>,
+}
 
 #[derive(Debug, Clone)]
 pub enum ShippingMethod {
@@ -10,6 +23,24 @@ pub enum ShippingMethod {
     FranceExpressTracking,
     International,
     InternationalTracking,
+}
+
+impl TryFrom<PaymentPagesCheckoutSessionCheckoutAddressDetails> for ShippingDetails {
+    type Error = PaymentInfoParsingError;
+
+    fn try_from(
+        value: PaymentPagesCheckoutSessionCheckoutAddressDetails,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self {
+            name: value.name,
+            city: value.address.city,
+            country: value.address.country,
+            line1: value.address.line1,
+            line2: value.address.line2,
+            postal_code: value.address.postal_code,
+            state: value.address.state,
+        })
+    }
 }
 
 impl ShippingMethod {
