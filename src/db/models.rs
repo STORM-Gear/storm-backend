@@ -101,7 +101,7 @@ pub struct Order {
     #[index]
     pub shipping_method_id: u64,
     #[belongs_to]
-    pub shipping_method: Option<ShippingMethod>,
+    pub shipping_method: Deferred<Option<ShippingMethod>>,
 
     #[has_many]
     pub order_products: Deferred<Vec<OrderProduct>>,
