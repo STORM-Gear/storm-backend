@@ -68,6 +68,8 @@
               default = "storm";
               description = "Group to run the service as";
             };
+
+            debug = mkEnableOption "Add RUST_BACKTRACE=1 to the service environment";
           };
 
           config = mkIf cfg.enable {
@@ -93,6 +95,10 @@
                 Group = cfg.group;
                 PrivateTmp = true;
                 NoNewPrivileges = true;
+              };
+
+              environment = mkIf cfg.debug {
+                RUST_BACKTRACE = "1";
               };
             };
           };
