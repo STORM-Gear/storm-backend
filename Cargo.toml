@@ -23,8 +23,8 @@ async-stripe-checkout = { version = "1.0.0-rc.6", features = [
   "serialize",
 ] }
 
-toasty = { version = "0.8", features = ["jiff", "sqlite", "postgresql"] }
-toasty-cli = "0.8"
+toasty = { version = "0.9", features = ["jiff", "sqlite", "postgresql"] }
+toasty-cli = "0.9"
 jiff = "0.2"
 
 reqwest = { version = "0.13", features = ["json"] }
