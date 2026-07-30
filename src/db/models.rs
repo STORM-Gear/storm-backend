@@ -57,6 +57,9 @@ pub struct OrderProduct {
     pub product_id: u64,
     #[belongs_to]
     pub product: Deferred<Product>,
+
+    #[default(1)]
+    pub quantity: u32,
 }
 
 #[derive(Debug, Embed)]
