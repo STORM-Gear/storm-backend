@@ -1,0 +1,2 @@
+ALTER TABLE "orders" ALTER COLUMN "status" TYPE TEXT;
+ALTER TABLE "orders" ALTER COLUMN "origin" TYPE TEXT;
