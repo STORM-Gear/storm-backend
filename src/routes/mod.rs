@@ -1,5 +1,5 @@
 use actix_web::*;
-use tracing::error;
+use tracing::{error, info};
 
 use crate::{AppState, stripe::PaymentInfo};
 
@@ -38,5 +38,12 @@ async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
 
     if let Err(e) = discord_res {
         error!("Failed to send Discord notification: {e}");
+    };
+
+    info!("Sending payment info to DB");
+    let mut db = app_data.db.lock().await;
+
+    if let Err(e) = db.insert_payment(payment_info).await {
+        error!("Failed to insert payment in DB: {e:?}");
     };
 }

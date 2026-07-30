@@ -1,6 +1,19 @@
 use std::str::FromStr;
 
+use stripe_checkout::PaymentPagesCheckoutSessionCheckoutAddressDetails;
+
 use super::errors::PaymentInfoParsingError;
+
+#[derive(Debug, Clone)]
+pub struct ShippingDetails {
+    pub name: String,
+    pub city: Option<String>,
+    pub country: Option<String>,
+    pub line1: Option<String>,
+    pub line2: Option<String>,
+    pub postal_code: Option<String>,
+    pub state: Option<String>,
+}
 
 #[derive(Debug, Clone)]
 pub enum ShippingMethod {
@@ -10,6 +23,37 @@ pub enum ShippingMethod {
     FranceExpressTracking,
     International,
     InternationalTracking,
+}
+
+impl TryFrom<PaymentPagesCheckoutSessionCheckoutAddressDetails> for ShippingDetails {
+    type Error = PaymentInfoParsingError;
+
+    fn try_from(
+        value: PaymentPagesCheckoutSessionCheckoutAddressDetails,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self {
+            name: value.name,
+            city: value.address.city,
+            country: value.address.country,
+            line1: value.address.line1,
+            line2: value.address.line2,
+            postal_code: value.address.postal_code,
+            state: value.address.state,
+        })
+    }
+}
+
+impl ShippingMethod {
+    pub fn stripe_id(&self) -> &str {
+        match self {
+            Self::InPerson => "shr_1Tiu9nPB7bMAkkZ4zSCGHOUr",
+            Self::FranceStandard => "shr_1TiyHqPB7bMAkkZ4ndxsCgTc",
+            Self::FranceTracking => "shr_1TiyIfPB7bMAkkZ4CTkSVxKw",
+            Self::FranceExpressTracking => "shr_1TiyJFPB7bMAkkZ4XEZdfomw",
+            Self::International => "shr_1TiyJpPB7bMAkkZ4LdAkJKwu",
+            Self::InternationalTracking => "shr_1TiyKOPB7bMAkkZ4k81e2V4f",
+        }
+    }
 }
 
 impl FromStr for ShippingMethod {

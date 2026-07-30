@@ -10,7 +10,7 @@ mod product;
 mod shipping;
 
 pub use product::Product;
-pub use shipping::ShippingMethod;
+pub use shipping::{ShippingDetails, ShippingMethod};
 
 use crate::utils::get_env_var;
 use errors::{PaymentInfoParsingError as ParseError, WebhookProcessingError as HookError};
@@ -26,9 +26,10 @@ pub struct PaymentInfo {
     pub currency: String,
     pub customer_name: String,
     pub customer_email: String,
-    pub analytics_id: Option<String>,
-    pub products: Vec<Product>,
+    pub shipping_details: ShippingDetails,
     pub shipping_method: ShippingMethod,
+    pub products: Vec<Product>,
+    pub analytics_id: Option<String>,
     pub payment_id: String,
 }
 
@@ -96,7 +97,9 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
             })?;
 
         let customer_name = session
+            // customer_details supposedly less reliable
             .collected_information
+            .clone()
             .and_then(|info| info.shipping_details)
             .map(|details| details.name)
             .ok_or(ParseError::MissingField(
@@ -125,6 +128,14 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
             })
             .collect::<Result<Vec<_>, _>>()?;
 
+        let shipping_details = session
+            .collected_information
+            .and_then(|info| info.shipping_details)
+            .ok_or(ParseError::MissingField(
+                "collected_information.shipping_details",
+            ))?
+            .try_into()?;
+
         let shipping_rate = session
             .shipping_cost
             .ok_or(ParseError::MissingField("shipping_cost"))?
@@ -144,6 +155,7 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
             currency,
             customer_name,
             customer_email,
+            shipping_details,
             analytics_id,
             products,
             shipping_method,

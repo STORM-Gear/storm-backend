@@ -68,6 +68,8 @@
               default = "storm";
               description = "Group to run the service as";
             };
+
+            debug = mkEnableOption "Add RUST_BACKTRACE=1 to the service environment";
           };
 
           config = mkIf cfg.enable {
@@ -85,7 +87,7 @@
 
               serviceConfig = {
                 Type = "simple";
-                ExecStart = "${cfg.package}/bin/storm-backend --port ${toString cfg.port} --bind-address ${cfg.bindAddress}";
+                ExecStart = "${cfg.package}/bin/storm-backend run --port ${toString cfg.port} --bind-address ${cfg.bindAddress}";
                 EnvironmentFile = cfg.secretsFile;
                 Restart = "on-failure";
                 RestartSec = 5;
@@ -93,6 +95,10 @@
                 Group = cfg.group;
                 PrivateTmp = true;
                 NoNewPrivileges = true;
+              };
+
+              environment = mkIf cfg.debug {
+                RUST_BACKTRACE = "1";
               };
             };
           };
