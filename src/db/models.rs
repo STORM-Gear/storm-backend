@@ -63,6 +63,8 @@ pub struct OrderProduct {
 }
 
 #[derive(Debug, Embed)]
+#[column(type = text)]
+
 pub enum OrderStatus {
     Ordered,
     Shipped,
@@ -70,6 +72,7 @@ pub enum OrderStatus {
 }
 
 #[derive(Debug, Embed)]
+#[column(type = text)]
 pub enum OrderOrigin {
     Stripe,
     Leboncoin,
