@@ -1,6 +1,7 @@
 CREATE TYPE "order_origin" AS ENUM ('stripe', 'leboncoin', 'vinted');
 CREATE TYPE "order_status" AS ENUM ('ordered', 'shipped', 'received');
 
+ALTER TABLE "orders" ALTER COLUMN "status" DROP DEFAULT;
 ALTER TABLE "orders"
   ALTER COLUMN "status" TYPE order_status
   USING (
