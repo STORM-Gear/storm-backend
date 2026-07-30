@@ -78,16 +78,19 @@ impl DbService {
         let order = toasty::create!(models::Order {
             amount: payment.revenue,
             status: models::OrderStatus::Ordered,
+            origin: models::OrderOrigin::Stripe,
             customer_id: customer.id,
             shipping_method_id: shipping_method.id,
 
-            shipping_name: payment.shipping_details.name,
-            shipping_city: payment.shipping_details.city,
-            shipping_country: payment.shipping_details.country,
-            shipping_line1: payment.shipping_details.line1,
-            shipping_line2: payment.shipping_details.line2,
-            shipping_postal_code: payment.shipping_details.postal_code,
-            shipping_state: payment.shipping_details.state,
+            shipping: models::ShippingDetails {
+                name: payment.shipping_details.name,
+                city: payment.shipping_details.city,
+                country: payment.shipping_details.country,
+                line1: payment.shipping_details.line1,
+                line2: payment.shipping_details.line2,
+                postal_code: payment.shipping_details.postal_code,
+                state: payment.shipping_details.state,
+            },
         })
         .exec(&mut tx)
         .await
@@ -102,7 +105,7 @@ impl DbService {
 
             toasty::create!(models::OrderProduct {
                 order_id: order.id,
-                product_id: product.id
+                product_id: product.id,
             })
             .exec(&mut tx)
             .await

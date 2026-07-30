@@ -61,14 +61,27 @@ pub struct OrderProduct {
 
 #[derive(Debug, Embed)]
 pub enum OrderStatus {
-    #[column(variant = 1)]
     Ordered,
-    #[column(variant = 2)]
-    Packaged,
-    #[column(variant = 3)]
     Shipped,
-    #[column(variant = 4)]
     Received,
+}
+
+#[derive(Debug, Embed)]
+pub enum OrderOrigin {
+    Stripe,
+    Leboncoin,
+    Vinted,
+}
+
+#[derive(Debug, toasty::Embed)]
+pub struct ShippingDetails {
+    pub name: String,
+    pub city: Option<String>,
+    pub country: Option<String>,
+    pub line1: Option<String>,
+    pub line2: Option<String>,
+    pub postal_code: Option<String>,
+    pub state: Option<String>,
 }
 
 #[derive(Debug, Model)]
@@ -83,15 +96,10 @@ pub struct Order {
 
     pub amount: f64,
     pub status: OrderStatus,
+    pub origin: OrderOrigin,
     pub tracking_id: Option<String>,
 
-    pub shipping_name: Option<String>,
-    pub shipping_city: Option<String>,
-    pub shipping_country: Option<String>,
-    pub shipping_line1: Option<String>,
-    pub shipping_line2: Option<String>,
-    pub shipping_postal_code: Option<String>,
-    pub shipping_state: Option<String>,
+    pub shipping: Option<ShippingDetails>,
 
     #[index]
     pub customer_id: u64,
