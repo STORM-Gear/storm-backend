@@ -73,8 +73,9 @@ pub enum OrderStatus {
 #[derive(Debug, Embed)]
 #[column(type = varchar(255))]
 pub enum OrderOrigin {
-    Stripe,
+    Amazon,
     Leboncoin,
+    Stripe,
     Vinted,
 }
 
