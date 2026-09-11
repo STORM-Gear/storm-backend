@@ -63,7 +63,9 @@ impl FromStr for ShippingMethod {
         match s {
             "shr_1Tiu9nPB7bMAkkZ4zSCGHOUr" => Ok(Self::InPerson),
             "shr_1TiyHqPB7bMAkkZ4ndxsCgTc" => Ok(Self::FranceStandard),
-            "shr_1TiyIfPB7bMAkkZ4CTkSVxKw" => Ok(Self::FranceTracking),
+            "shr_1TiyIfPB7bMAkkZ4CTkSVxKw" | "shr_1UDJy1PB7bMAkkZ4nTNP2cTe" => {
+                Ok(Self::FranceTracking)
+            }
             "shr_1TiyJFPB7bMAkkZ4XEZdfomw" => Ok(Self::FranceExpressTracking),
             "shr_1TiyJpPB7bMAkkZ4LdAkJKwu" => Ok(Self::International),
             "shr_1TiyKOPB7bMAkkZ4k81e2V4f" => Ok(Self::InternationalTracking),
