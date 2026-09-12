@@ -76,6 +76,7 @@ impl DbService {
                 })?;
 
         let order = toasty::create!(models::Order {
+            stripe_payment_id: payment.payment_id,
             amount: payment.revenue,
             status: models::OrderStatus::Ordered,
             origin: models::OrderOrigin::Stripe,

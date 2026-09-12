@@ -100,6 +100,9 @@ pub struct Order {
     #[auto]
     pub updated_at: jiff::Timestamp,
 
+    #[unique]
+    pub stripe_payment_id: Option<String>,
+
     pub amount: f64,
     pub status: OrderStatus,
     pub origin: OrderOrigin,
