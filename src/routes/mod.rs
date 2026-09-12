@@ -79,7 +79,12 @@ impl ResponseError for PaymentPipelineError {
                 WebhookProcessingError::UnhandledEvent(_) => StatusCode::NOT_FOUND,
                 WebhookProcessingError::Stripe(_) => StatusCode::INTERNAL_SERVER_ERROR,
             },
-            PaymentPipelineError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            PaymentPipelineError::Database(e) => match e {
+                InsertPaymentError::AlreadyExists(_) => StatusCode::OK,
+                InsertPaymentError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                InsertPaymentError::ProductNotFound(_)
+                | InsertPaymentError::ShippingMethodNotFound(_) => StatusCode::NOT_FOUND,
+            },
             // Send OK as these are non-critical
             PaymentPipelineError::Mailer(_) | PaymentPipelineError::Discord(_) => StatusCode::OK,
         }

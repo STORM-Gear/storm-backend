@@ -44,14 +44,10 @@ impl DbService {
         let mut tx = self.db.transaction().await?;
 
         // Check if Stripe payment already got inserted
-        if let Err(error) =
-            models::Order::get_by_stripe_payment_id(&mut tx, &payment.payment_id).await
-        {
-            if error.is_record_not_found() {
-                return Err(InsertPaymentError::AlreadyExists(payment.payment_id));
-            } else {
-                return Err(InsertPaymentError::Database(error));
-            }
+        match models::Order::get_by_stripe_payment_id(&mut tx, &payment.payment_id).await {
+            Ok(_) => return Err(InsertPaymentError::AlreadyExists(payment.payment_id)),
+            Err(e) if e.is_record_not_found() => { /* nouveau paiement => continuer */ }
+            Err(e) => return Err(InsertPaymentError::Database(e)),
         }
 
         let customer = match models::Customer::get_by_email(&mut tx, &payment.customer_email).await
