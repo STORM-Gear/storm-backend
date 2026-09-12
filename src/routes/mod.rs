@@ -22,6 +22,16 @@ pub async fn webhook_handler(
 }
 
 async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
+    {
+        info!("Sending payment info to DB");
+        let mut db = app_data.db.lock().await;
+        if let Err(e) = db.insert_payment(payment_info.clone()).await {
+            error!("Failed to insert payment in DB: {e:?}");
+            info!("Aborting");
+            return;
+        };
+    }
+
     let (_, mail_res) = tokio::join!(
         app_data.analytics.send_checkout_completed(&payment_info),
         app_data.mailer.send_checkout_confirmation(&payment_info),
@@ -38,12 +48,5 @@ async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
 
     if let Err(e) = discord_res {
         error!("Failed to send Discord notification: {e}");
-    };
-
-    info!("Sending payment info to DB");
-    let mut db = app_data.db.lock().await;
-
-    if let Err(e) = db.insert_payment(payment_info).await {
-        error!("Failed to insert payment in DB: {e:?}");
     };
 }
