@@ -2,6 +2,7 @@ use actix_web::{
     http::{StatusCode, header::ContentType},
     *,
 };
+use tracing::error;
 
 use crate::{
     AppState,
@@ -30,9 +31,20 @@ pub async fn webhook_handler(
 ) -> Result<(), PaymentPipelineError> {
     let payment_info = app_data.stripe.get_payment_info(request, payload).await?;
 
-    payment_pipeline(payment_info, &app_data).await?;
+    if let Err(e) = payment_pipeline(payment_info, &app_data).await {
+        error!("payment pipeline error: {e}");
+        if let Err(discord_error) = app_data
+            .discord
+            .send_internal_error_message(e.to_string())
+            .await
+        {
+            error!("failed to report error message through discord: {discord_error}");
+        }
 
-    Ok(())
+        Err(e)
+    } else {
+        Ok(())
+    }
 }
 
 async fn payment_pipeline(

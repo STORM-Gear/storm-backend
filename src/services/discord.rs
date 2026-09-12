@@ -73,7 +73,26 @@ impl DiscordWebhook {
                   ]
                 }
               ]
+            }))
+            .send()
+            .await?;
 
+        Ok(())
+    }
+
+    pub async fn send_internal_error_message(&self, message: String) -> Result<(), reqwest::Error> {
+        info!("Sending internal error discord message");
+
+        self.client
+            .post(&self.url)
+            .json(&json!({
+              "embeds": [
+                {
+                  "color": 0xff4000,
+                  "title": "Internal server error !",
+                  "description": message
+                }
+              ]
             }))
             .send()
             .await?;
