@@ -13,6 +13,7 @@ pub struct DbService {
 pub enum InsertPaymentError {
     StartTx,
     CommitTx,
+    QueryOrder,
     CreateOrder,
     AlreadyExists,
     QueryCustomer,
@@ -46,11 +47,15 @@ impl DbService {
             .await
             .map_err(|_| InsertPaymentError::StartTx)?;
 
-        let exists = models::Order::get_by_stripe_payment_id(&mut tx, &payment.payment_id)
-            .await
-            .is_ok();
-        if exists {
-            return Err(InsertPaymentError::AlreadyExists);
+        // Check if Stripe payment already got inserted
+        if let Err(exists) =
+            models::Order::get_by_stripe_payment_id(&mut tx, &payment.payment_id).await
+        {
+            if exists.is_record_not_found() {
+                return Err(InsertPaymentError::AlreadyExists);
+            } else {
+                return Err(InsertPaymentError::QueryOrder);
+            }
         }
 
         let customer = match models::Customer::get_by_email(&mut tx, &payment.customer_email).await
