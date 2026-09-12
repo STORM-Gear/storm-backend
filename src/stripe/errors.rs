@@ -1,53 +1,30 @@
 use stripe::StripeError;
 use stripe_webhook::EventType;
 
+#[derive(Debug, thiserror::Error)]
 pub enum WebhookProcessingError {
+    #[error("missing signature header")]
     MissingSignatureHeader,
+    #[error("invalid payload")]
     InvalidPayload,
+    #[error("invalid signature")]
     InvalidSignature,
+    #[error("unhandled event type: {0}")]
     UnhandledEvent(EventType),
+    #[error("failed to build PaymentInfo from CheckoutSession: {0}")]
     ParseError(PaymentInfoParsingError),
+    #[error("stripe api error: {0}")]
     Stripe(StripeError),
 }
 
+#[derive(Debug, thiserror::Error)]
 pub enum PaymentInfoParsingError {
+    #[error("missing field: {0}")]
     MissingField(&'static str),
+    #[error("unhandled currency: {0}")]
     UnhandledCurrency(String),
+    #[error("unknown shipping rate id: {0}")]
     UnknownShippingRate(String),
+    #[error("unknown product id: {0}")]
     UnknownProduct(String),
-}
-
-impl std::fmt::Display for WebhookProcessingError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            WebhookProcessingError::MissingSignatureHeader => write!(f, "Missing signature header"),
-            WebhookProcessingError::InvalidPayload => write!(f, "Invalid payload"),
-            WebhookProcessingError::InvalidSignature => write!(f, "Invalid webhook signature"),
-            WebhookProcessingError::UnhandledEvent(event_type) => {
-                write!(f, "Unhandled event type: {}", event_type)
-            }
-            WebhookProcessingError::ParseError(e) => write!(
-                f,
-                "Failed to build `PaymentInfo` from `CheckoutSession: {e}`"
-            ),
-            WebhookProcessingError::Stripe(e) => writeln!(f, "Failed to call Stripe API: {e}"),
-        }
-    }
-}
-
-impl std::fmt::Display for PaymentInfoParsingError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            PaymentInfoParsingError::MissingField(field) => write!(f, "Missing '{field}' field"),
-            PaymentInfoParsingError::UnhandledCurrency(currency) => {
-                write!(f, "Unhandled currency '{currency}'")
-            }
-            PaymentInfoParsingError::UnknownShippingRate(id) => {
-                write!(f, "Unknown shipping rate ID: {id}")
-            }
-            PaymentInfoParsingError::UnknownProduct(id) => {
-                write!(f, "Unknown product ID: {id}")
-            }
-        }
-    }
 }

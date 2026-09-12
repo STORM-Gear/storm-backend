@@ -20,6 +20,8 @@ impl AnalyticsServer {
     pub async fn send_checkout_completed(&self, info: &PaymentInfo) {
         const EVENT_NAME: &str = "checkout-completed";
 
+        info!("Sending 'checkout-completed' analytics event");
+
         let mut payload = serde_json::json!({
             "website": self.website_id,
             "name": EVENT_NAME,

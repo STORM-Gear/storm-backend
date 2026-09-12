@@ -18,9 +18,13 @@ pub struct Mailer {
     templates: Environment<'static>,
 }
 
+#[derive(Debug, thiserror::Error)]
 pub enum MailerError {
+    #[error("invalid email address: {0}")]
     Parse(AddressError),
+    #[error("SMTP error: {0}")]
     SMTP(SMTPError),
+    #[error("CSS inline error: {0}")]
     Inline(css_inline::InlineError),
 }
 
@@ -52,6 +56,8 @@ impl Mailer {
     }
 
     pub async fn send_checkout_confirmation(&self, info: &PaymentInfo) -> Result<(), MailerError> {
+        info!("Sending checkout confirmation email");
+
         let subject = match info.shipping_method {
             ShippingMethod::InPerson => {
                 "Votre STORM est prêt, prenez rendez-vous pour le récupérer ! 🪂"
@@ -95,15 +101,5 @@ impl Mailer {
             .map_err(|e| MailerError::SMTP(e))?;
         info!("Confirmation email sent.");
         Ok(())
-    }
-}
-
-impl std::fmt::Display for MailerError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            MailerError::Parse(e) => write!(f, "Failed to parse customer email address: {e}"),
-            MailerError::SMTP(e) => write!(f, "Failed to send email over SMTP: {e}"),
-            MailerError::Inline(e) => write!(f, "Failed to inline rendered email: {e}"),
-        }
     }
 }

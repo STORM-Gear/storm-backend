@@ -9,17 +9,15 @@ pub struct DbService {
     db: Db,
 }
 
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum InsertPaymentError {
-    StartTx,
-    CommitTx,
-    QueryOrder,
-    CreateOrder,
-    AlreadyExists,
-    QueryCustomer,
-    CreateCustomer,
-    CreateOrderProduct,
+    #[error("database error: {0}")]
+    Database(#[from] toasty::Error),
+    #[error("order already exists (id: {0})")]
+    AlreadyExists(String),
+    #[error("product id not found: {0}")]
     ProductNotFound(String),
+    #[error("shipping method id not found: {0}")]
     ShippingMethodNotFound(String),
 }
 
@@ -41,20 +39,18 @@ impl DbService {
     }
 
     pub async fn insert_payment(&mut self, payment: PaymentInfo) -> Result<(), InsertPaymentError> {
-        let mut tx = self
-            .db
-            .transaction()
-            .await
-            .map_err(|_| InsertPaymentError::StartTx)?;
+        info!("Sending payment info to DB");
+
+        let mut tx = self.db.transaction().await?;
 
         // Check if Stripe payment already got inserted
-        if let Err(exists) =
+        if let Err(error) =
             models::Order::get_by_stripe_payment_id(&mut tx, &payment.payment_id).await
         {
-            if exists.is_record_not_found() {
-                return Err(InsertPaymentError::AlreadyExists);
+            if error.is_record_not_found() {
+                return Err(InsertPaymentError::AlreadyExists(payment.payment_id));
             } else {
-                return Err(InsertPaymentError::QueryOrder);
+                return Err(InsertPaymentError::Database(error));
             }
         }
 
@@ -71,9 +67,8 @@ impl DbService {
                     })
                     .exec(&mut tx)
                     .await
-                    .map_err(|_| InsertPaymentError::CreateCustomer)
                 } else {
-                    Err(InsertPaymentError::QueryCustomer)
+                    Err(e)
                 }
             }
         }?;
@@ -107,8 +102,7 @@ impl DbService {
             },
         })
         .exec(&mut tx)
-        .await
-        .map_err(|_| InsertPaymentError::CreateOrder)?;
+        .await?;
 
         for product in payment.products.iter() {
             let product = models::Product::get_by_stripe_id(&mut tx, product.stripe_id())
@@ -122,10 +116,10 @@ impl DbService {
                 product_id: product.id,
             })
             .exec(&mut tx)
-            .await
-            .map_err(|_| InsertPaymentError::CreateOrderProduct)?;
+            .await?;
         }
 
-        tx.commit().await.map_err(|_| InsertPaymentError::CommitTx)
+        tx.commit().await?;
+        Ok(())
     }
 }

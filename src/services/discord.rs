@@ -1,5 +1,6 @@
 use rand::seq::IndexedRandom;
 use serde_json::json;
+use tracing::info;
 
 use crate::{stripe::PaymentInfo, utils::get_env_var};
 
@@ -39,6 +40,8 @@ impl DiscordWebhook {
         &self,
         info: &PaymentInfo,
     ) -> Result<(), reqwest::Error> {
+        info!("Sending checkout completed discord message");
+
         self.client
             .post(&self.url)
             // Thanks to https://phantombot.gg/tools/discord-embed-creator !

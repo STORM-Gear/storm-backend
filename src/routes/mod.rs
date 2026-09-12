@@ -1,52 +1,87 @@
-use actix_web::*;
-use tracing::{error, info};
+use actix_web::{
+    http::{StatusCode, header::ContentType},
+    *,
+};
 
-use crate::{AppState, stripe::PaymentInfo};
+use crate::{
+    AppState,
+    db::InsertPaymentError,
+    services::mailer::MailerError,
+    stripe::{PaymentInfo, errors::WebhookProcessingError},
+};
+
+#[derive(Debug, thiserror::Error)]
+enum PaymentPipelineError {
+    #[error("stripe error: {0}")]
+    Stripe(#[from] WebhookProcessingError),
+    #[error("database error: {0}")]
+    Database(#[from] InsertPaymentError),
+    #[error("mailer error: {0}")]
+    Mailer(#[from] MailerError),
+    #[error("discord error: {0}")]
+    Discord(#[from] reqwest::Error),
+}
 
 #[post("/stripe/webhook")]
 pub async fn webhook_handler(
     request: HttpRequest,
     payload: web::Bytes,
     app_data: web::Data<AppState>,
-) -> impl Responder {
-    match app_data.stripe.get_payment_info(request, payload).await {
-        Ok(payment_info) => {
-            payment_pipeline(payment_info, &app_data).await;
-        }
-        Err(e) => {
-            error!("{}", e);
-        }
-    };
+) -> Result<(), PaymentPipelineError> {
+    let payment_info = app_data.stripe.get_payment_info(request, payload).await?;
 
-    HttpResponse::Ok().finish()
+    payment_pipeline(payment_info, &app_data).await?;
+
+    Ok(())
 }
 
-async fn payment_pipeline(payment_info: PaymentInfo, app_data: &AppState) {
+async fn payment_pipeline(
+    payment_info: PaymentInfo,
+    app_data: &AppState,
+) -> Result<(), PaymentPipelineError> {
     {
-        info!("Sending payment info to DB");
         let mut db = app_data.db.lock().await;
-        if let Err(e) = db.insert_payment(payment_info.clone()).await {
-            error!("Failed to insert payment in DB: {e:?}");
-            info!("Aborting");
-            return;
-        };
+        db.insert_payment(payment_info.clone()).await?;
     }
 
-    let (_, mail_res) = tokio::join!(
-        app_data.analytics.send_checkout_completed(&payment_info),
-        app_data.mailer.send_checkout_confirmation(&payment_info),
-    );
+    app_data
+        .mailer
+        .send_checkout_confirmation(&payment_info)
+        .await?;
 
-    if let Err(e) = mail_res {
-        error!("Failed to send checkout confirmation email: {e}");
-    };
-
-    let discord_res = app_data
-        .discord
-        .send_checkout_completed_message(&payment_info)
+    app_data
+        .analytics
+        .send_checkout_completed(&payment_info)
         .await;
 
-    if let Err(e) = discord_res {
-        error!("Failed to send Discord notification: {e}");
-    };
+    app_data
+        .discord
+        .send_checkout_completed_message(&payment_info)
+        .await?;
+
+    Ok(())
+}
+
+impl ResponseError for PaymentPipelineError {
+    fn error_response(&self) -> HttpResponse<body::BoxBody> {
+        HttpResponse::build(self.status_code())
+            .insert_header(ContentType::html())
+            .body(self.to_string())
+    }
+
+    fn status_code(&self) -> http::StatusCode {
+        match self {
+            PaymentPipelineError::Stripe(e) => match e {
+                WebhookProcessingError::MissingSignatureHeader
+                | WebhookProcessingError::InvalidPayload
+                | WebhookProcessingError::ParseError(_) => StatusCode::BAD_REQUEST,
+                WebhookProcessingError::InvalidSignature => StatusCode::UNAUTHORIZED,
+                WebhookProcessingError::UnhandledEvent(_) => StatusCode::NOT_FOUND,
+                WebhookProcessingError::Stripe(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            },
+            PaymentPipelineError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            // Send OK as these are non-critical
+            PaymentPipelineError::Mailer(_) | PaymentPipelineError::Discord(_) => StatusCode::OK,
+        }
+    }
 }
