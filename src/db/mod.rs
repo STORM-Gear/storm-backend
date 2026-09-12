@@ -14,6 +14,7 @@ pub enum InsertPaymentError {
     StartTx,
     CommitTx,
     CreateOrder,
+    AlreadyExists,
     QueryCustomer,
     CreateCustomer,
     CreateOrderProduct,
@@ -44,6 +45,13 @@ impl DbService {
             .transaction()
             .await
             .map_err(|_| InsertPaymentError::StartTx)?;
+
+        let exists = models::Order::get_by_stripe_payment_id(&mut tx, &payment.payment_id)
+            .await
+            .is_ok();
+        if exists {
+            return Err(InsertPaymentError::AlreadyExists);
+        }
 
         let customer = match models::Customer::get_by_email(&mut tx, &payment.customer_email).await
         {
