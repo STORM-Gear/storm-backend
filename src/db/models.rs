@@ -25,6 +25,13 @@ pub struct ShippingMethod {
     pub name: String,
 }
 
+#[derive(Debug, Embed)]
+#[column(type = varchar(255))]
+pub enum CustomerEntity {
+    Individual,
+    Business,
+}
+
 #[derive(Debug, Model)]
 pub struct Customer {
     #[key]
@@ -38,6 +45,9 @@ pub struct Customer {
     pub name: String,
     #[unique]
     pub email: String,
+
+    #[default(CustomerEntity::Individual)]
+    pub entity: CustomerEntity,
 
     #[has_many]
     pub orders: Deferred<Vec<Order>>,
