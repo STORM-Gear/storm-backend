@@ -87,6 +87,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_data.clone())
             .wrap(TracingLogger::default())
             .service(routes::webhook_handler)
+            .service(routes::ping)
     })
     .bind((bind_address, port))?
     .run()
