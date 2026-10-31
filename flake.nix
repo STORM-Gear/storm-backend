@@ -107,19 +107,25 @@
       perSystem = {
         self',
         pkgs,
+        lib,
         ...
-      }: {
+      }: let
+        buildInputs = with pkgs; [
+          openssl
+        ];
+        crateNames = ["storm-backend"];
+      in {
         rust-project = {
           src = self;
-          crates."storm-backend" = {
-            autoWire = ["crate" "clippy"];
-            crane.args.buildInputs = with pkgs; [
-              openssl
-            ];
-          };
+          crates = lib.genAttrs crateNames (_: {
+            autoWire = ["crate"];
+            crane.args.buildInputs = buildInputs;
+          });
         };
 
         devShells.default = pkgs.mkShell rec {
+          inherit buildInputs;
+
           name = "storm-backend";
 
           inputsFrom = [
@@ -128,10 +134,6 @@
 
           packages = with pkgs; [
             stripe-cli
-          ];
-
-          buildInputs = with pkgs; [
-            openssl
           ];
 
           env.LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
