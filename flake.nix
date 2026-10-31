@@ -117,6 +117,9 @@
       in {
         rust-project = {
           src = self;
+          toolchain = pkgs.rust-bin.stable."latest".minimal.override {
+            extensions = ["rust-src" "rust-analyzer" "clippy" "rustfmt"];
+          };
           crates = lib.genAttrs crateNames (_: {
             autoWire = ["crate"];
             crane.args.buildInputs = buildInputs;
