@@ -111,9 +111,12 @@
       }: {
         rust-project = {
           src = self;
-          crates."storm-backend".crane.args.buildInputs = with pkgs; [
-            openssl
-          ];
+          crates."storm-backend" = {
+            autoWire = ["crate" "clippy"];
+            crane.args.buildInputs = with pkgs; [
+              openssl
+            ];
+          };
         };
 
         devShells.default = pkgs.mkShell rec {
