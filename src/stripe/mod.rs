@@ -112,21 +112,24 @@ impl TryFrom<CheckoutSession> for PaymentInfo {
 
         let analytics_id = session.client_reference_id;
 
-        let products = session
+        let mut products = Vec::new();
+        for line_item in session
             .line_items
             .ok_or(ParseError::MissingField("line_items"))?
             .data
             .into_iter()
-            .map(|line_item| {
-                let product_id = line_item
-                    .price
-                    .ok_or(ParseError::MissingField("line_items.price"))?
-                    .product
-                    .into_id();
+        {
+            let product_id = line_item
+                .price
+                .ok_or(ParseError::MissingField("line_items.price"))?
+                .product
+                .into_id();
 
-                Product::from_str(&product_id)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+            let product = Product::from_str(&product_id)?;
+            for _ in 0..line_item.quantity.unwrap_or(1) {
+                products.push(product);
+            }
+        }
 
         let shipping_details = session
             .collected_information

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use super::errors::PaymentInfoParsingError;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Product {
     Storm,
     ChargingCable,
