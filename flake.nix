@@ -69,16 +69,18 @@
               description = "Group to run the service as";
             };
 
+            preventUserCreation = mkEnableOption "Do not try creating service user and group";
+
             debug = mkEnableOption "Add RUST_BACKTRACE=1 to the service environment";
           };
 
           config = mkIf cfg.enable {
-            users.users.${cfg.user} = mkIf (cfg.user == "storm") {
+            users.users.${cfg.user} = mkIf (cfg.user == "storm" && !cfg.preventUserCreation) {
               group = cfg.group;
               isSystemUser = true;
             };
 
-            users.groups.${cfg.group} = mkIf (cfg.group == "storm") {};
+            users.groups.${cfg.group} = mkIf (cfg.group == "storm" && !cfg.preventUserCreation) {};
 
             systemd.services.storm-backend = {
               description = "Storm Backend Service";
